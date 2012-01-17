@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Passerelle Commons Plug-in
+Bundle-SymbolicName: com.isencia.passerelle.commons
+Bundle-Version: 7.0.0
+Bundle-Vendor: iSencia
+Import-Package: junit.framework;version="3.8.2",
+ org.jdom;version="1.0.0",
+ org.jdom.input;version="1.0.0",
+ org.jdom.output;version="1.0.0",
+ org.slf4j;version="1.5.0"
+Export-Package: com.isencia.constants;version="7.0.0",
+ com.isencia.properties;version="7.0.0",
+ com.isencia.util;version="7.0.0",
+ com.isencia.util.commandline;version="7.0.0",
+ com.isencia.util.swing.calendar;version="7.0.0",
+ com.isencia.util.swing.components;version="7.0.0",
+ com.isencia.util.swing.layout;version="7.0.0"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
