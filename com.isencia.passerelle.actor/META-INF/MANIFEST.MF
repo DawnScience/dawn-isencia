@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Passerelle Actor Plug-in
 Bundle-SymbolicName: com.isencia.passerelle.actor;singleton:=true
-Bundle-Version: 7.0.0
+Bundle-Version: 7.0.1
 Bundle-Activator: com.isencia.passerelle.actor.activator.Activator
 Bundle-Vendor: isencia
 Eclipse-RegisterBuddy: com.isencia.passerelle.engine, ptolemy.core
@@ -32,8 +32,6 @@ Require-Bundle: com.isencia.passerelle.commons;bundle-version="7.0.0",
  org.apache.xml.serializer;bundle-version="2.7.1"
 Export-Package: com.isencia.passerelle.actor.control,
  com.isencia.passerelle.actor.convert,
- com.isencia.passerelle.actor.db,
- com.isencia.passerelle.actor.db.gui,
  com.isencia.passerelle.actor.dynaport,
  com.isencia.passerelle.actor.eip,
  com.isencia.passerelle.actor.error,
