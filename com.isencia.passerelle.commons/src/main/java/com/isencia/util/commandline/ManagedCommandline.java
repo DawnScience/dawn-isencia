@@ -47,7 +47,8 @@ public class ManagedCommandline extends EnvCommandline {
 
   private StreamGobbler stdOutGobbler;
   private StreamGobbler stdErrGobbler;
-  private boolean streamLogsToLogging;
+  private boolean streamLogsToLogging=false;
+  private boolean streamLogsToLoggingAndSaved=false;
 
   /**
    * Constructor which takes a command line string and attempts to parse it into
@@ -237,6 +238,12 @@ public class ManagedCommandline extends EnvCommandline {
       while ((line = lineByLineReader.readLine()) != null) {
         if (streamLogsToLogging) {
           logger.debug(getName() + "> " + line);
+          
+        } else  if (streamLogsToLoggingAndSaved) {
+          logger.debug(getName() + "> " + line);
+          streamDataAsStringBuilder.append(line + LINE_SEPARATOR);
+          streamDataAsList.add(line);
+        
         } else {
           streamDataAsStringBuilder.append(line + LINE_SEPARATOR);
           streamDataAsList.add(line);
@@ -265,6 +272,10 @@ public class ManagedCommandline extends EnvCommandline {
 
         if (streamLogsToLogging) {
           logger.debug(getName() + "> " + new String(chars));
+        } else  if (streamLogsToLoggingAndSaved) {
+            logger.debug(getName() + "> " + new String(chars));
+            streamDataAsStringBuilder.append(chars, 0, length);
+            streamDataAsList.add(new String(chars));
         } else {
           streamDataAsStringBuilder.append(chars, 0, length);
           streamDataAsList.add(new String(chars));
@@ -287,14 +298,22 @@ public class ManagedCommandline extends EnvCommandline {
   }
 
   public boolean isStreamLogsToLogging() {
-    return streamLogsToLogging;
+	  return streamLogsToLogging;
   }
 
   public void setStreamLogsToLogging(boolean streamLogsToLogging) {
-    this.streamLogsToLogging = streamLogsToLogging;
+	  this.streamLogsToLogging = streamLogsToLogging;
   }
 
-  public void setEnv(Map<String, String> env) {
+  public boolean isStreamLogsToLoggingAndSaved() {
+	  return streamLogsToLoggingAndSaved;
+  }
+
+  public void setStreamLogsToLoggingAndSaved(boolean streamLogsToLoggingAndSaved) {
+	  this.streamLogsToLoggingAndSaved = streamLogsToLoggingAndSaved;
+  }
+
+public void setEnv(Map<String, String> env) {
     for (String key : env.keySet()) {
       setVariable(key, env.get(key));
     }
