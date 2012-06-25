@@ -4,5 +4,6 @@
 /bin
 /build.xml
 /javaCompiler...args
+/target
 
 # Ignores that are specific to this Eclipse project
