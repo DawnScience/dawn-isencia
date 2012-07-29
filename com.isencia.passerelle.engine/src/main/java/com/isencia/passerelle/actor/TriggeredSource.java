@@ -140,8 +140,8 @@ public abstract class TriggeredSource extends Source {
 				}
             }
 				
-			if(logger.isInfoEnabled()) {
-				logger.info(getInfo()+" - Trigger received");
+			if(logger.isDebugEnabled()) {
+				logger.debug(getInfo()+" - Trigger received");
 			}
 		}
 	}

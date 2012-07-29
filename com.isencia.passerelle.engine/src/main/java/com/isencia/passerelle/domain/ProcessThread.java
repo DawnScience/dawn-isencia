@@ -94,8 +94,8 @@ public class ProcessThread extends ptolemy.actor.process.ProcessThread {
 	 */
 	public void run() {
 		LoggerManager.setContext(ctxt);
-		if (logger.isInfoEnabled()) {
-			logger.info(getActor().getFullName() + " - Starting ProcessThread");
+		if (logger.isDebugEnabled()) {
+			logger.debug(getActor().getFullName() + " - Starting ProcessThread");
 		}
 		_debug("-- Starting thread.");
 		Workspace workspace = _director.workspace();
@@ -165,8 +165,8 @@ public class ProcessThread extends ptolemy.actor.process.ProcessThread {
 //					_director.iterationFinished(getActor(), itrPerm);
 				}
 			}
-			if (logger.isInfoEnabled()) {
-				logger.info(getActor().getFullName() + " - Clean termination of ProcessThread");
+			if (logger.isDebugEnabled()) {
+				logger.debug(getActor().getFullName() + " - Clean termination of ProcessThread");
 			}
 		} catch (Throwable t) {
 			thrownWhenIterate = t;
