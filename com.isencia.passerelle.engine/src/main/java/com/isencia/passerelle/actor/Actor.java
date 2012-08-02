@@ -1321,4 +1321,17 @@ public abstract class Actor extends TypedAtomicActor implements IMessageCreator 
 		actor.statistics = new ActorStatistics(actor);
 		return actor;
 	}
+	
+	/**
+	 * Generic log method for all actors. The idea is to harmonize the log
+	 * message, if in 'info' level add the actor name and if in 'trace' or 'debug'
+	 * level add the full name.
+	 * 
+	 */
+	public void logInfo(String logMessage) {
+		if (logger.isInfoEnabled())
+			logger.info( logMessage + " (actor '" + this.getName() + "')");
+		else if (logger.isTraceEnabled() || logger.isDebugEnabled())
+			logger.info( logMessage + " (actor '" + this.getFullName() + "')");
+	}
 }
