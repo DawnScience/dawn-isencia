@@ -263,8 +263,8 @@ public class PortHandler {
         	try {
 				LoggerManager.pushMDC(ProcessThread.ACTOR_MDC_NAME,actorInfo);
 	
-				if(logger.isInfoEnabled()) {
-	        		logger.info(PortHandler.this.ioPort.getFullName()+" ChannelHandler."+channelIndex+" run() - entry");
+				if(logger.isTraceEnabled()) {
+	        		logger.trace(PortHandler.this.ioPort.getFullName()+" ChannelHandler."+channelIndex+" run() - entry");
 	        	}
 	
 	            while (!terminated) {
@@ -283,8 +283,8 @@ public class PortHandler {
 	                }
 	            }
 				
-	        	if(logger.isInfoEnabled()) {
-	        		logger.info(PortHandler.this.ioPort.getFullName()+" ChannelHandler."+channelIndex+" run() - exit");
+	        	if(logger.isTraceEnabled()) {
+	        		logger.trace(PortHandler.this.ioPort.getFullName()+" ChannelHandler."+channelIndex+" run() - exit");
 	        	}
         	} catch (Throwable t) {
         		logger.error(PortHandler.this.ioPort.getFullName()+" - Error in ChannelHandler",t);

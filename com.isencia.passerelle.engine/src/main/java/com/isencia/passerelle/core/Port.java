@@ -882,8 +882,8 @@ public class Port extends TypedIOPort {
 		}
 		operationalSourcePorts.remove(port);
 		if(operationalSourcePorts.size()==0) {
-			if(logger.isInfoEnabled()) {
-				logger.info("All source ports exhausted for "+this.getFullName());
+			if(logger.isDebugEnabled()) {
+				logger.debug("All source ports exhausted for "+this.getFullName());
 			}
 			// start requestFinish procedure
 			Receiver[][] myLocalReceivers = getReceivers();
