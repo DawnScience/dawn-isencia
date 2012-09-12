@@ -153,8 +153,9 @@ public class ManagedCommandline extends EnvCommandline {
     // Execute the command using the specified environment
     currentProcess = super.execute();
 
-    stdOutGobbler = new StreamGobbler(currentProcess.getInputStream(), getExecutable() + " - StdOut");
-    stdErrGobbler = new StreamGobbler(currentProcess.getErrorStream(), getExecutable() + " - StdErr");
+    String prefix = (getExecutable() != null) ? getExecutable() + " - " : "";
+    stdOutGobbler = new StreamGobbler(currentProcess.getInputStream(), prefix + "StdOut");
+    stdErrGobbler = new StreamGobbler(currentProcess.getErrorStream(), prefix + "StdErr");
     stdOutGobbler.start();
     stdErrGobbler.start();
 
@@ -237,10 +238,10 @@ public class ManagedCommandline extends EnvCommandline {
       String line = null;
       while ((line = lineByLineReader.readLine()) != null) {
         if (streamLogsToLogging) {
-          logger.debug(getName() + "> " + line);
+          logger.info(getName() + "> " + line);
           
         } else  if (streamLogsToLoggingAndSaved) {
-          logger.debug(getName() + "> " + line);
+          logger.info(getName() + "> " + line);
           streamDataAsStringBuilder.append(line + LINE_SEPARATOR);
           streamDataAsList.add(line);
         
@@ -271,9 +272,9 @@ public class ManagedCommandline extends EnvCommandline {
         }
 
         if (streamLogsToLogging) {
-          logger.debug(getName() + "> " + new String(chars));
+          logger.info(getName() + "> " + new String(chars));
         } else  if (streamLogsToLoggingAndSaved) {
-            logger.debug(getName() + "> " + new String(chars));
+            logger.info(getName() + "> " + new String(chars));
             streamDataAsStringBuilder.append(chars, 0, length);
             streamDataAsList.add(new String(chars));
         } else {
