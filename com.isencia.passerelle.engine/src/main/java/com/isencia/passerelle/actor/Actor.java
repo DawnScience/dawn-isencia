@@ -22,8 +22,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ptolemy.actor.Receiver;
 import ptolemy.actor.TypedAtomicActor;
 import ptolemy.actor.process.TerminateProcessException;
@@ -36,6 +38,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Settable;
 import ptolemy.kernel.util.Workspace;
+
 import com.isencia.passerelle.actor.gui.EditorIcon;
 import com.isencia.passerelle.actor.gui.IOptionsFactory;
 import com.isencia.passerelle.actor.gui.OptionsFactory;
@@ -47,7 +50,6 @@ import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.core.PortHandler;
 import com.isencia.passerelle.core.PortListenerAdapter;
-import com.isencia.passerelle.domain.ProcessDirector;
 import com.isencia.passerelle.domain.cap.BlockingQueueReceiver;
 import com.isencia.passerelle.domain.cap.Director;
 import com.isencia.passerelle.ext.ErrorControlStrategy;
@@ -1077,7 +1079,7 @@ public abstract class Actor extends TypedAtomicActor implements IMessageCreator 
 	 * 
 	 * @param newParameter
 	 */
-	final protected void registerConfigurableParameter(Parameter newParameter) {
+	final public void registerConfigurableParameter(Parameter newParameter) {
 		if (newParameter != null && !configurableParameters.contains(newParameter) && newParameter.getContainer().equals(this)) {
 			configurableParameters.add(newParameter);
 		}
@@ -1093,7 +1095,7 @@ public abstract class Actor extends TypedAtomicActor implements IMessageCreator 
 	 * 
 	 * @param newParameter
 	 */
-	final protected void registerExpertParameter(Parameter newParameter) {
+	final public void registerExpertParameter(Parameter newParameter) {
 		if (newParameter != null && newParameter.getContainer().equals(this)) {
 			if (!expertParameters.contains(newParameter))
 				expertParameters.add(newParameter);
