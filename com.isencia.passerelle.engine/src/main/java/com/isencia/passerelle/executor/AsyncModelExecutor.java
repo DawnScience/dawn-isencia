@@ -64,7 +64,7 @@ public class AsyncModelExecutor implements Runnable {
         throw new IllegalArgumentException("File " + file.getAbsolutePath() + " is not a moml file, execution failed ");
       }
 
-      Flow flow = FlowManager.readMoml(file.toURL());
+      Flow flow = FlowManager.readMoml(file.toURI().toURL());
       Map<String, String> props = new HashMap<String, String>();
       for (int i = 1; i < args.length; i++) {
         String arg = args[i];

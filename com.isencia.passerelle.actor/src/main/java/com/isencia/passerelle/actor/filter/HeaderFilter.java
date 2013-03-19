@@ -15,6 +15,7 @@
 
 package com.isencia.passerelle.actor.filter;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.Filter;
 import com.isencia.passerelle.actor.FilterException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
 /**
@@ -37,10 +39,11 @@ import com.isencia.passerelle.message.ManagedMessage;
  * @author erwin
  */
 public class HeaderFilter extends Filter {
-  // ~ Static variables/initializers
-  // __________________________________________________________________________________________________________________________
 
-  private static Logger logger = LoggerFactory.getLogger(HeaderFilter.class);
+  private static final long serialVersionUID = 1L;
+  
+  private static Logger LOGGER = LoggerFactory.getLogger(HeaderFilter.class);
+  
   private static final String STARTS_WITH = "StartsWith";
   private static final String ENDS_WITH = "EndsWith";
   private static final String CONTAINS = "Contains";
@@ -48,24 +51,12 @@ public class HeaderFilter extends Filter {
   private static final String ABSENT = "Absent";
   private static final String REGEXP = "RegularExpression";
 
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
-
   public Parameter filterParam;
-
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
   public Parameter propertyParam;
   public Parameter filterTypeParam;
   private String filter = "";
   private String filterType = null;
-
-  // /////////////////////////////////////////////////////////////////
-  // // private variables ////
   private String property = "";
-
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
 
   /**
    * Construct an actor in the specified container with the specified name.
@@ -97,37 +88,26 @@ public class HeaderFilter extends Filter {
 
   }
 
-  /*
-   * (non-Javadoc)
-   * @see
-   * ptolemy.kernel.util.NamedObj#attributeChanged(ptolemy.kernel.util.Attribute
-   * )
-   */
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == propertyParam) {
       property = ((StringToken) propertyParam.getToken()).stringValue();
-      logger.debug("Header set to : " + property);
+      LOGGER.debug("Header set to : " + property);
     } else if (attribute == filterParam) {
       filter = ((StringToken) filterParam.getToken()).stringValue();
-      logger.debug("Filter set to : " + filter);
+      LOGGER.debug("Filter set to : " + filter);
     } else if (attribute == filterTypeParam) {
       filterType = filterTypeParam.getExpression();
-      logger.debug("FilterType set to : " + filterType);
+      LOGGER.debug("FilterType set to : " + filterType);
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
-  }
-
-  protected String getExtendedInfo() {
-    return property + ":" + filterType + ":" + filter;
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected boolean isMatchingFilter(Object msg) throws FilterException {
@@ -146,7 +126,7 @@ public class HeaderFilter extends Filter {
       } catch (NullPointerException e) {
         // do nothing, means the required element was not present
       } catch (Exception e) {
-        throw new FilterException(getInfo() + " exception in isMatchingFilter() :" + e, msg, e);
+        throw new FilterException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error in filter check", this, message, e);
       }
     }
     return matchFound;
@@ -157,10 +137,7 @@ public class HeaderFilter extends Filter {
    * @return
    */
   protected boolean matchesFilter(String[] hdrs) {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + hdrs);
-    }
-
+    getLogger().trace("{} matchesFilter() - entry - headers : {}", getFullName(), Arrays.toString(hdrs));
     boolean valid = false;
     if (hdrs != null) {
       for (int i = 0; i < hdrs.length && !valid; ++i) {
@@ -169,27 +146,22 @@ public class HeaderFilter extends Filter {
             || (filterType.equals(CONTAINS) && (item.indexOf(filter) >= 0)) || (filterType.equals(REGEXP) && matchesRegExp(item, filter));
       }
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit :" + valid);
-    }
-
+    getLogger().trace("{} matchesFilter() - exit - result : {}", getFullName(), valid);
     return valid;
   }
 
   /**
    * Checks whether the given item matches the given regular expression
    * 
-   * @param item DOCUMENT ME!
-   * @param expression DOCUMENT ME!
-   * @return DOCUMENT ME!
+   * @param item 
+   * @param expression 
+   * @return 
    */
   protected boolean matchesRegExp(String item, String expression) {
     try {
       return Pattern.matches(expression, item);
     } catch (PatternSyntaxException e) {
-      logger.error("Syntax error in regular expression " + expression, e);
-
+      getLogger().error("Syntax error in regular expression " + expression, e);
       return false;
     }
   }

@@ -20,13 +20,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import com.isencia.passerelle.core.PasserelleException;
-import com.isencia.passerelle.message.MessageException;
-
 import ptolemy.data.ArrayToken;
 import ptolemy.data.Token;
 import ptolemy.data.type.ArrayType;
 import ptolemy.data.type.Type;
+import com.isencia.passerelle.core.ErrorCode;
+import com.isencia.passerelle.message.MessageException;
 
 /**
  * Convert between ArrayToken and Passerelle messages
@@ -38,10 +37,10 @@ public class ArrayConverter extends ConverterBase {
 
 	protected boolean areTypesCompatible(Class fromType, Type toType) {
 		boolean res = (toType instanceof ArrayType);
-		if(res && fromType!=null) {
+//		if(res && fromType!=null) {
 			// check if contained type in the array is compatible with the fromType
 //			res = ((ArrayType)toType).getElementType().??
-		}
+//		}
 		return res;
 	}
 
@@ -62,7 +61,7 @@ public class ArrayConverter extends ConverterBase {
 			} catch (MessageException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new MessageException(PasserelleException.Severity.NON_FATAL,"",content,e);
+				throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"Error converting " + content,e);
 			}
 		} else if(content.getClass().isArray()) {
 			try {
@@ -77,7 +76,7 @@ public class ArrayConverter extends ConverterBase {
 			} catch (MessageException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new MessageException(PasserelleException.Severity.NON_FATAL,"",content,e);
+				throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"Error converting " + content,e);
 			}
 		} else if(Collection.class.isInstance(content)) {
 			try {
@@ -92,7 +91,7 @@ public class ArrayConverter extends ConverterBase {
 			} catch (MessageException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new MessageException(PasserelleException.Severity.NON_FATAL,"",content,e);
+				throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"Error converting " + content,e);
 			}
 		} else {
 			// just try to treat the content string representation...
@@ -109,7 +108,7 @@ public class ArrayConverter extends ConverterBase {
 			} catch (MessageException e) {
 				throw e;
 			} catch (Exception e) {
-				throw new MessageException(PasserelleException.Severity.NON_FATAL,"",content,e);
+				throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"Error converting " + content,e);
 			}
 		}
 
@@ -138,7 +137,7 @@ public class ArrayConverter extends ConverterBase {
 				} catch (MessageException e) {
 					throw e;
 				} catch (Exception e) {
-					throw new MessageException(PasserelleException.Severity.NON_FATAL,"",typedToken,e);
+					throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"Error converting " + typedToken,e);
 				}
 			} else if(String.class.isAssignableFrom(targetType)) {
 				// do a conversion to a String representation

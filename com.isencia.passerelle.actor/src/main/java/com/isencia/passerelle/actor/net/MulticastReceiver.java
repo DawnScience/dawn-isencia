@@ -53,8 +53,8 @@ import com.isencia.passerelle.actor.ChannelSource;
  *              container
  */
 public class MulticastReceiver extends ChannelSource {
-
-  private static Logger logger = LoggerFactory.getLogger(MulticastReceiver.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(MulticastReceiver.class);
 
   private int port = 4446;
   private String group = "230.0.0.1";
@@ -63,18 +63,18 @@ public class MulticastReceiver extends ChannelSource {
 
   public MulticastReceiver(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
-
-    // Parameters
     groupParam = new StringParameter(this, "group");
     groupParam.setExpression(getGroup());
     portParam = new Parameter(this, "port", new IntToken(getPort()));
     portParam.setTypeEquals(BaseType.INT);
-
+  }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
   }
 
   /**
-   * Gets the group.
-   * 
    * @return Returns a String
    */
   public String getGroup() {
@@ -82,8 +82,6 @@ public class MulticastReceiver extends ChannelSource {
   }
 
   /**
-   * Sets the group.
-   * 
    * @param group The group to set
    */
   protected void setGroup(String group) {
@@ -91,8 +89,6 @@ public class MulticastReceiver extends ChannelSource {
   }
 
   /**
-   * Gets the port.
-   * 
    * @return Returns a int
    */
   public int getPort() {
@@ -100,24 +96,14 @@ public class MulticastReceiver extends ChannelSource {
   }
 
   /**
-   * Sets the port.
-   * 
    * @param port The port to set
    */
   protected void setPort(int port) {
     this.port = port;
   }
 
-  /**
-   * Triggered whenever e.g. a parameter has been modified.
-   * 
-   * @param attribute The attribute that changed.
-   * @exception IllegalActionException
-   */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == portParam) {
       IntToken portToken = (IntToken) portParam.getToken();
       if (portToken != null && portToken.intValue() > 0) {
@@ -128,25 +114,13 @@ public class MulticastReceiver extends ChannelSource {
       if (groupToken != null && groupToken.stringValue().length() > 0) {
         setGroup(groupToken.stringValue());
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-  }
-
-  protected String getExtendedInfo() {
-    return getGroup() + ":" + getPort();
-  }
-
-  protected IReceiverChannel createChannel() {
-    IReceiverChannel res = null;
-    try {
-      res = new MulticastReceiverChannel(getGroup(), getPort());
-    } catch (ChannelException e) {
-      logger.error("Error creating MulticastReceiverChannel for " + getInfo(), e);
     }
-
-    return res;
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
+  protected IReceiverChannel createChannel() throws ChannelException {
+    return new MulticastReceiverChannel(getGroup(), getPort());
+  }
 }

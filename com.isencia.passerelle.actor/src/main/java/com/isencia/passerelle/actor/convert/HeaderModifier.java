@@ -25,34 +25,43 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Transformer;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 
 /**
- * Simple actor that reads std passerelle msgs and allows to add a property
- * name/value pair to it.
+ * Simple actor that reads std passerelle msgs and allows to add/modify a property name/value pair.
  * 
- * @version 1.0
  * @author erwin
  */
 public class HeaderModifier extends Transformer {
+
+  private static final long serialVersionUID = 1L;
+  public Parameter propNameParam = null;
+  public Parameter propValueParam = null;
+  public Parameter propModeParam = null;
+
+  private String propName = "";
+  private String propValue = "";
+  private String propMode = null;
 
   private final static String MODE_ADD = "Add";
   private final static String MODE_MODIFY = "Modify";
   private final static String MODE_REMOVE = "Remove";
 
-  private static Logger logger = LoggerFactory.getLogger(HeaderModifier.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(HeaderModifier.class);
 
   /**
    * Construct an actor with the given container and name.
    * 
-   * @param container The container.
-   * @param name The name of this actor.
-   * @exception IllegalActionException If the actor cannot be contained by the
-   *              proposed container.
-   * @exception NameDuplicationException If the container already has an actor
-   *              with this name.
+   * @param container
+   *          The container.
+   * @param name
+   *          The name of this actor.
+   * @exception IllegalActionException
+   *              If the actor cannot be contained by the proposed container.
+   * @exception NameDuplicationException
+   *              If the container already has an actor with this name.
    */
   public HeaderModifier(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
@@ -71,22 +80,14 @@ public class HeaderModifier extends Transformer {
     propModeParam.addChoice(MODE_MODIFY);
     propModeParam.addChoice(MODE_REMOVE);
   }
-
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
-  private Parameter propNameParam = null;
-  private Parameter propValueParam = null;
-  private Parameter propModeParam = null;
-
-  // private variables
-  private String propName = "";
-  private String propValue = "";
-  private String propMode = null;
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == propNameParam) {
       propName = ((StringToken) propNameParam.getToken()).stringValue();
     } else if (attribute == propValueParam) {
@@ -96,13 +97,10 @@ public class HeaderModifier extends Transformer {
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   public void doFire(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - message :" + message);
-
     if (message != null) {
       if (propName != null && propName.length() > 0) {
         try {
@@ -114,23 +112,10 @@ public class HeaderModifier extends Transformer {
             message.removeBodyHeader(propName);
           }
         } catch (MessageException e) {
-          throw new ProcessingException(PasserelleException.Severity.NON_FATAL, "", message, e);
+          throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "", this, message, e);
         }
       }
-
     }
-
-    try {
-      sendOutputMsg(output, message);
-    } catch (IllegalArgumentException e) {
-      throw new ProcessingException(getInfo() + " - doFire() generated exception " + e, message, e);
-    }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    sendOutputMsg(output, message);
   }
-
-  protected String getExtendedInfo() {
-    return propMode + ":" + propName + ":" + propValue;
-  }
-
 }

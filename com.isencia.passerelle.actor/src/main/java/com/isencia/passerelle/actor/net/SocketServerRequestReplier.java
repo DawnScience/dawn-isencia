@@ -33,7 +33,7 @@ import com.isencia.message.requestreply.IRequestReplyChannel;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ReqReplyChannelSource;
 import com.isencia.passerelle.actor.gui.IOptionsFactory.Option;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 
 /**
  * A socket server that is able to send responses to incoming msgs. It's a bit
@@ -42,18 +42,8 @@ import com.isencia.passerelle.core.PasserelleException;
  * @author erwin
  */
 public class SocketServerRequestReplier extends ReqReplyChannelSource {
-  // ~ Static variables/initializers
-  // __________________________________________________________________________________________________________________________
-
-  // /////////////////////////////////////////////////////////////////
-  // // private variables ////
-  private static Logger logger = LoggerFactory.getLogger(SocketServerRequestReplier.class);
-
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
-
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(SocketServerRequestReplier.class);
 
   /** The server listen socket port. */
   public Parameter socketPort;
@@ -61,9 +51,6 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
 
   public Parameter msgExtractorType;
   final static String MSG_EXTRACTOR_PARAM_NAME = "Msg End";
-
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
 
   /**
    * SocketServerSource constructor comment.
@@ -78,19 +65,17 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
   public SocketServerRequestReplier(ptolemy.kernel.CompositeEntity container, String name) throws ptolemy.kernel.util.IllegalActionException,
       ptolemy.kernel.util.NameDuplicationException {
     super(container, name);
-
-    // Parameters
     socketPort = new Parameter(this, "port", new IntToken(getPort()));
     socketPort.setTypeEquals(BaseType.INT);
     msgExtractorType = new StringParameter(this, MSG_EXTRACTOR_PARAM_NAME);
   }
 
-  // ~ Methods
-  // ________________________________________________________________________________________________________________________________________________
-
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   /**
-   * Sets the port.
-   * 
    * @param port The port to set
    */
   public void setPort(int port) {
@@ -98,9 +83,7 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
   }
 
   /**
-   * Gets the port.
-   * 
-   * @return Returns a int
+   * @return Returns the port
    */
   public int getPort() {
     return port;
@@ -111,10 +94,7 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == socketPort) {
       IntToken portToken = (IntToken) socketPort.getToken();
 
@@ -124,14 +104,7 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
-  }
-
-  protected String getExtendedInfo() {
-    return "localhost:" + getPort();
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected IRequestReplyChannel createChannel() throws InitializationException {
@@ -148,7 +121,7 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
       ServerSocket sSocket = new ServerSocket(getPort());
       res = new com.isencia.message.net.requestreply.SocketServerRequestReplier(sSocket, extractor, generator);
     } catch (IOException e) {
-      throw new InitializationException(PasserelleException.Severity.FATAL, "Error opening server socket on port" + getPort(), this, e);
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "Error opening server socket on port" + getPort(), this, e);
     }
     return res;
   }
@@ -173,10 +146,8 @@ public class SocketServerRequestReplier extends ReqReplyChannelSource {
       }
       extractor = ((IMessageExtractor) o.getAssociatedObject()).cloneExtractor();
     } catch (Exception e) {
-      throw new InitializationException(PasserelleException.Severity.FATAL, "Error setting Parameter options factory", this, e);
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "Error setting Parameter options factory", this, e);
     }
-
     return extractor;
   }
-
 }

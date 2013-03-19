@@ -32,7 +32,7 @@ import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 
 /**
- * This abstract class provides the basis for "mixin" components
+ * This base class provides the basis for "mixin" components
  * that can be registered on actors to add support for dynamically creating
  * an arbitrary number of named output ports.
  * <p>
@@ -43,9 +43,11 @@ import com.isencia.passerelle.core.PortFactory;
  * @author delerw
  *
  */
-public abstract class OutputPortBuilder extends Attribute {
+public class OutputPortBuilder extends Attribute {
   private static Logger LOGGER = LoggerFactory.getLogger(OutputPortBuilder.class);
 
+  private boolean singleport;
+  
   /**
    * the set of configured/required output port names
    */
@@ -58,6 +60,17 @@ public abstract class OutputPortBuilder extends Attribute {
    */
   private Entity container;
 
+  /**
+   * @param single
+   * @param container
+   * @param name
+   * @throws IllegalActionException
+   * @throws NameDuplicationException
+   */
+  public OutputPortBuilder(Entity container, String name,boolean singleport) throws IllegalActionException, NameDuplicationException {
+	  this(container, name);
+	  this.singleport = singleport;
+  }
   /**
    * @param container
    * @param name
@@ -82,7 +95,6 @@ public abstract class OutputPortBuilder extends Attribute {
    * Modifying the list contents has no impact on the ports that
    * are actually present on the containing entity.
    */
-  @SuppressWarnings("unchecked")
   public List<Port> getOutputPorts() {
     // in order to avoid cloning issues
     // when we would maintain the list of dynamically cfg-ed
@@ -163,7 +175,7 @@ public abstract class OutputPortBuilder extends Attribute {
       if (aPort == null) {
         LOGGER.debug("{} - createPort() - port {} will be constructed", container.getFullName(), portName);
         aPort = PortFactory.getInstance().createOutputPort(container, portName);
-        aPort.setMultiport(true);
+        aPort.setMultiport(!singleport);
       } else {
         throw new IllegalActionException(container, "port " + portName + " already exists");
       }

@@ -24,7 +24,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Sink;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.util.ExecutionTracerService;
@@ -33,16 +33,10 @@ import com.isencia.passerelle.util.ExecutionTracerService;
  * Dump a message in an execution trace message
  * 
  * @author erwin
- * @version 1.0
  */
 public class TracerConsole extends Sink {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 5950430024278609950L;
-
-  private static Logger logger = LoggerFactory.getLogger(TracerConsole.class);
-
+  private static Logger LOGGER = LoggerFactory.getLogger(TracerConsole.class);
   public Parameter chopLengthParam;
   private int chopLength = 80;
 
@@ -56,29 +50,28 @@ public class TracerConsole extends Sink {
    */
   public TracerConsole(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
-
     chopLengthParam = new Parameter(this, "Chop output at #chars", new IntToken(chopLength));
+  }
+  
+  @Override
+  public Logger getLogger() {
+    return LOGGER;
   }
 
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == chopLengthParam) {
       IntToken chopLengthToken = (IntToken) chopLengthParam.getToken();
       if (chopLengthToken != null) {
         chopLength = chopLengthToken.intValue();
-        logger.debug("Chop length changed to : " + chopLength);
+        getLogger().debug("{} Chop length changed to {}", getFullName(), chopLength);
       }
     } else
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected void sendMessage(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     if (message != null) {
       if (isPassThrough()) {
         ExecutionTracerService.trace(this, message.toString());
@@ -90,19 +83,16 @@ public class TracerConsole extends Sink {
             content = content.substring(0, chopLength) + " !! CHOPPED !! ";
           }
         } catch (MessageException e) {
-          throw new ProcessingException(PasserelleException.Severity.NON_FATAL, "", message, e);
+          throw new ProcessingException(ErrorCode.MSG_CONTENT_TYPE_ERROR, "Error getting msg content", this, message, e);
         }
         if (content != null) {
           ExecutionTracerService.trace(this, content);
         }
       }
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
 
   public int getChopLength() {
     return chopLength;
   }
-
 }

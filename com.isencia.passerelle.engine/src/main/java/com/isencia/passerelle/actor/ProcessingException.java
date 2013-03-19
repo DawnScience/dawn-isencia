@@ -14,7 +14,10 @@
 */
 package com.isencia.passerelle.actor;
 
+import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.message.ManagedMessage;
 
 /**
  * ProcessingException
@@ -25,8 +28,9 @@ import com.isencia.passerelle.core.PasserelleException;
  * @author erwin
  */
 public class ProcessingException extends PasserelleException {
+  private static final long serialVersionUID = 1L;
 
-	/**
+  /**
 	 * Creates a new ProcessingException with NON_FATAL severity,
 	 * and the given parameters.
 	 * 
@@ -34,9 +38,10 @@ public class ProcessingException extends PasserelleException {
 	 * @param context an object that can give additional info, e.g. input data
 	 * that caused the problem (may be null)
 	 * @param rootException an exception that may have caused the processing problem (may be null)
+	 * @deprecated
 	 */
 	public ProcessingException(String message, Object context, Throwable rootException) {
-		super(Severity.NON_FATAL, message,context,rootException);
+		super(message,context,rootException);
 	}
 
 	/**
@@ -45,8 +50,31 @@ public class ProcessingException extends PasserelleException {
 	 * @param message
 	 * @param context
 	 * @param rootException
+   * @deprecated
 	 */	
 	public ProcessingException(Severity severity, String message, Object context, Throwable rootException) {
 		super(severity, message,context,rootException);
 	}
+
+  /**
+   * @param errorCode
+   * @param message
+   * @param modelElement
+   * @param rootException
+   */
+  public ProcessingException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+    super(errorCode, message, modelElement, rootException);
+  }
+
+  /**
+   * 
+   * @param errorCode
+   * @param message
+   * @param modelElement
+   * @param msgContext
+   * @param rootException
+   */
+  public ProcessingException(ErrorCode errorCode, String message, NamedObj modelElement, ManagedMessage msgContext, Throwable rootException) {
+    super(errorCode, message, modelElement, msgContext, rootException);
+  }
 }

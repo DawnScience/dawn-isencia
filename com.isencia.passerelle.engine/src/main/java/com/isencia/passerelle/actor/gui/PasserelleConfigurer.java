@@ -262,7 +262,7 @@ public class PasserelleConfigurer extends JPanel implements CloseListener {
         if((settable.getVisibility() == Settable.EXPERT) && (target instanceof Actor)) {
         	Actor actorTarget = (Actor) target;
         	try {
-        		return ((Director)actorTarget.getDirector()).isExpertMode();
+        		return actorTarget.getDirectorAdapter().isExpertMode();
         	} catch (Exception e) {
         		// means we're not using a Passerelle director
         		// just return false then

@@ -18,16 +18,22 @@ package com.isencia.passerelle.core;
  * PortMode represents whether a port should be polled
  * to see if a message is available, or whether the message should be pushed 
  * to an actor.
- * <br>
+ * <p>
  * Remark that polling a port with <code>Port.get()</code> blocks until
  * a message is available or until the Port can be certain that no more
  * messages will ever arrive in the life of the current model.
- * 
+ * </p>
+ * <p>
+ * Since Passerelle v8.3, the AGNOSTIC mode has been added. 
+ * This means that the engine should not assume anything about the Port semantics, 
+ * and that the container component (typically an actor)
+ * is responsible for any ad-hoc approach to obtain the messages from the input port.
+ * </p>
  * @author erwin
  */
 public enum PortMode {
   
-	PULL(true),PUSH(false);
+	PULL(true),PUSH(false),AGNOSTIC(false);
 	
   private boolean blocking;
 
@@ -37,9 +43,5 @@ public enum PortMode {
   
   public boolean isBlocking() {
     return blocking;
-  }
-  
-  public boolean equals(PortMode other) {
-    return this.blocking==other.blocking;
   }
 }

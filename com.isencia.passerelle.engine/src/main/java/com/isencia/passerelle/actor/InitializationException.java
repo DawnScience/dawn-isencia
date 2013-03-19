@@ -14,37 +14,52 @@
 */
 package com.isencia.passerelle.actor;
 
+import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 
 
 /**
- * InitializationException
- * 
- * TODO: class comment
- * 
+ * InitializationExceptions are thrown by model elements (typically actors) during the start-up of a model.
+ * <p>
+ * They are typically indicating fatal issues that prevent a successful operation of the impacted element/actor.
+ * <br/>
+ * Remark that in multi-threaded domains (e.g. derived from Ptolemy's PN), it is not guaranteed that all actors
+ * have finished their complete initialization before any processing iterations.
+ * </p>
  * @author erwin
  */
 public class InitializationException extends PasserelleException {
-
-	/**
+  private static final long serialVersionUID = 1L;
+  /**
 	 * Creates a new InitializationException with NON_FATAL severity,
 	 * and the given parameters.
 	 * 
 	 * @param message
 	 * @param context
 	 * @param rootException
+	 * @deprecated
 	 */
 	public InitializationException(String message, Object context, Throwable rootException) {
-		super(Severity.NON_FATAL, message, context, rootException);
+		super(message, context, rootException);
 	}
 	/**
 	 * @param severity
 	 * @param message
 	 * @param context
 	 * @param rootException
+   * @deprecated
 	 */
 	public InitializationException(Severity severity, String message, Object context, Throwable rootException) {
 		super(severity, message, context, rootException);
 	}
-
+  /**
+   * @param errorCode
+   * @param message
+   * @param modelElement
+   * @param rootException
+   */
+	public InitializationException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+    super(errorCode, message, modelElement, rootException);
+  }
 }

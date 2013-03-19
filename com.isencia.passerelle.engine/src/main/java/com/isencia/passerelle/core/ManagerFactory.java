@@ -51,9 +51,7 @@ public class ManagerFactory {
 		try {
 			return new com.isencia.passerelle.core.Manager(ws, name);
 		} catch (IllegalActionException e) {
-			throw new PasserelleException("Could not create a new Manager", name, e);
+			throw new PasserelleException(ErrorCode.ERROR, "Could not create a new Manager " + name, e);
 		}
 	}
-	
-
 }

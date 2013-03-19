@@ -26,6 +26,7 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Transformer;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.message.internal.sequence.SequenceTrace;
@@ -40,9 +41,10 @@ import com.isencia.passerelle.message.internal.sequence.SequenceTrace;
  * @author erwin
  */
 public class SequenceToArrayConverter extends Transformer {
-  private static Logger logger = LoggerFactory.getLogger(SequenceToArrayConverter.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(SequenceToArrayConverter.class);
 
-  private Map sequences = new HashMap();
+  private Map<Long, SequenceTrace> sequences = new HashMap<Long, SequenceTrace>();
 
   /**
    * @param container
@@ -53,20 +55,18 @@ public class SequenceToArrayConverter extends Transformer {
   public SequenceToArrayConverter(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doInitialize() - entry");
-
     super.doInitialize();
     sequences.clear();
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doInitialize() - exit");
-
   }
 
   protected void doFire(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - entry - message :" + message);
-
     if (message.isPartOfSequence()) {
       SequenceTrace seqTrace = (SequenceTrace) sequences.get(message.getSequenceID());
       if (seqTrace == null) {
@@ -74,14 +74,12 @@ public class SequenceToArrayConverter extends Transformer {
         sequences.put(seqTrace.getSequenceID(), seqTrace);
       }
       seqTrace.addMessage(message);
-
       if (seqTrace.isComplete()) {
         ManagedMessage resultMsg = null;
         try {
           ManagedMessage[] msgsInSeq = seqTrace.getMessagesInSequence();
           resultMsg = createMessage();
-
-          List msgBodies = new ArrayList();
+          List<Object> msgBodies = new ArrayList<Object>();
           for (int i = 0; i < msgsInSeq.length; i++) {
             ManagedMessage msg = msgsInSeq[i];
             resultMsg.addCauseID(msg.getID());
@@ -91,21 +89,12 @@ public class SequenceToArrayConverter extends Transformer {
           seqTrace.clear();
           sequences.remove(seqTrace.getSequenceID());
         } catch (MessageException e) {
-          throw new ProcessingException("Error during processing of complete sequence", seqTrace, e);
+          throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error creating result msg for completed sequence "+seqTrace.getSequenceID(), this, e);
         }
-
         sendOutputMsg(output, resultMsg);
       }
     } else {
       sendOutputMsg(output, message);
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - exit");
-
   }
-
-  protected String getExtendedInfo() {
-    return "";
-  }
-
 }

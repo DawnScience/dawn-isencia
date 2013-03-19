@@ -25,6 +25,7 @@ import com.isencia.passerelle.actor.v5.Actor;
 import com.isencia.passerelle.actor.v5.ActorContext;
 import com.isencia.passerelle.actor.v5.ProcessRequest;
 import com.isencia.passerelle.actor.v5.ProcessResponse;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.message.ManagedMessage;
@@ -48,8 +49,8 @@ import com.isencia.passerelle.message.ManagedMessage;
  * In the rare cases where "false" messages can be dropped, this just means that the NOMATCH output port will not be connected to a next actor.
  * </p>
  */
-@SuppressWarnings("serial")
 public abstract class MessageFilter extends Actor {
+  private static final long serialVersionUID = 1L;
   public Port input;
   public Port outputMatch;
   public Port outputNoMatch;
@@ -85,6 +86,7 @@ public abstract class MessageFilter extends Actor {
    */
   @Override
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if(outputMatchPortNameParameter==attribute) {
       // The port's display name is what is made visible in the graphical editors,
       // and what is used in the log files to trace message flows etc.
@@ -103,7 +105,8 @@ public abstract class MessageFilter extends Actor {
     } else {
       super.attributeChanged(attribute);
     }
-  };
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
+  }
   
   @Override
   protected void process(ActorContext ctxt, ProcessRequest request, ProcessResponse response) throws ProcessingException {
@@ -117,7 +120,7 @@ public abstract class MessageFilter extends Actor {
     } catch (ProcessingException e) {
       throw e;
     } catch (Exception e) {
-      throw new ProcessingException("Error matching filter for "+getFullName(), inputMsg, e);
+      throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error matching filter", this, inputMsg, e);
     }
   }
   

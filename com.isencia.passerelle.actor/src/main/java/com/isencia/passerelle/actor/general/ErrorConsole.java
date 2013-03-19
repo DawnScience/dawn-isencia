@@ -20,13 +20,9 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 
 /**
- * @author Wim Geeraerts
+ * @author Wim
  */
 public class ErrorConsole extends Console {
-
-  /**
-	 * 
-	 */
 	private static final long serialVersionUID = -6530337774933942033L;
 
 	/**
@@ -41,9 +37,5 @@ public class ErrorConsole extends Console {
 
   protected PrintStream getConsole() {
     return System.err;
-  }
-
-  protected String getExtendedInfo() {
-    return "StdErr Console";
   }
 }

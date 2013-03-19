@@ -32,64 +32,43 @@ import com.isencia.message.net.SocketServerReceiverChannel;
 import com.isencia.passerelle.actor.ChannelSource;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.gui.IOptionsFactory.Option;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 
 /**
- * DOCUMENT ME!
- * 
- * @version $Id: SocketServerReceiver.java,v 1.5 2006/02/06 20:08:50 erwin Exp $
- * @author Dirk Jacobs
+ * @author Dirk
  */
 public class SocketServerReceiver extends ChannelSource {
-  // ~ Static variables/initializers
-  // __________________________________________________________________________________________________________________________
-
-  // /////////////////////////////////////////////////////////////////
-  // // private variables ////
-  private static Logger logger = LoggerFactory.getLogger(SocketServerReceiver.class);
-
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
-
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
-
-  /** The server listen socket port. */
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(SocketServerReceiver.class);
+  
   public Parameter socketPort;
   private int port = 3333;
 
   public Parameter msgExtractorType;
   final static String MSG_EXTRACTOR_PARAM_NAME = "Msg End";
 
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
-
   /**
-   * SocketServerSource constructor comment.
    * 
-   * @param container ptolemy.kernel.CompositeEntity
-   * @param name java.lang.String
-   * @exception ptolemy.kernel.util.IllegalActionException The exception
-   *              description.
-   * @exception ptolemy.kernel.util.NameDuplicationException The exception
-   *              description.
+   * @param container
+   * @param name
+   * @throws ptolemy.kernel.util.IllegalActionException
+   * @throws ptolemy.kernel.util.NameDuplicationException
    */
   public SocketServerReceiver(ptolemy.kernel.CompositeEntity container, String name) throws ptolemy.kernel.util.IllegalActionException,
       ptolemy.kernel.util.NameDuplicationException {
     super(container, name);
-
-    // Parameters
     socketPort = new Parameter(this, "port", new IntToken(getPort()));
     socketPort.setTypeEquals(BaseType.INT);
     msgExtractorType = new StringParameter(this, MSG_EXTRACTOR_PARAM_NAME);
+    new SocketSvrRcvOptionsFactory(this, OPTIONS_FACTORY_CFG_NAME).setOptionsForParameter(msgExtractorType);
+  }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
   }
 
-  // ~ Methods
-  // ________________________________________________________________________________________________________________________________________________
-
   /**
-   * Sets the port.
-   * 
    * @param port The port to set
    */
   public void setPort(int port) {
@@ -97,9 +76,7 @@ public class SocketServerReceiver extends ChannelSource {
   }
 
   /**
-   * Gets the port.
-   * 
-   * @return Returns a int
+   * @return Returns the port
    */
   public int getPort() {
     return port;
@@ -110,27 +87,16 @@ public class SocketServerReceiver extends ChannelSource {
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == socketPort) {
       IntToken portToken = (IntToken) socketPort.getToken();
-
       if ((portToken != null) && (portToken.intValue() > 0)) {
         setPort(portToken.intValue());
       }
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
-  }
-
-  protected String getExtendedInfo() {
-    return "localhost:" + getPort();
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected IReceiverChannel createChannel() throws ChannelException, InitializationException {
@@ -140,9 +106,8 @@ public class SocketServerReceiver extends ChannelSource {
       ServerSocket sSocket = new ServerSocket(getPort());
       res = new SocketServerReceiverChannel(sSocket, extractor);
     } catch (IOException e) {
-      throw new InitializationException(PasserelleException.Severity.FATAL, "Error opening server socket on port" + getPort(), this, e);
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "Error opening server socket on port" + getPort(), this, e);
     }
-
     return res;
   }
 
@@ -166,7 +131,7 @@ public class SocketServerReceiver extends ChannelSource {
       }
       extractor = ((IMessageExtractor) o.getAssociatedObject()).cloneExtractor();
     } catch (Exception e) {
-      throw new InitializationException(PasserelleException.Severity.FATAL, "Error setting Parameter options factory", this, e);
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "Error setting Parameter options factory", this, e);
     }
 
     return extractor;

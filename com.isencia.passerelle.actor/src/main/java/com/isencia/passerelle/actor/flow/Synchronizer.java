@@ -29,6 +29,7 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
@@ -37,29 +38,24 @@ import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageHelper;
 
 /**
- * An actor that synchronizes the messages on all input ports, and then sends
- * them onwards via the corresponding output ports. It has one fixed input port,
- * the syncInput port which is multi-channel. This allows to resolve bootstrap
- * issues for synchronized loops, e.g. combining the loop feedback msg and an
- * ordinary start-up trigger. Besides this port, it can have a configurable,
- * equal nr of extra input and output ports. The extra input ports are all
- * single-channel.
+ * An actor that synchronizes the messages on all input ports, and then sends them onwards via the corresponding output ports. It has one fixed input port, the
+ * syncInput port which is multi-channel. This allows to resolve bootstrap issues for synchronized loops, e.g. combining the loop feedback msg and an ordinary
+ * start-up trigger. Besides this port, it can have a configurable, equal nr of extra input and output ports. The extra input ports are all single-channel.
  * 
  * @author erwin
  */
 public class Synchronizer extends Actor {
-  private static Logger logger = LoggerFactory.getLogger(Synchronizer.class);
+  private static final long serialVersionUID = 1L;
+
+  private static Logger LOGGER = LoggerFactory.getLogger(Synchronizer.class);
 
   public static final String NUMBER_OF_PORTS = "Extra nr of ports";
-
   public static final String INPUTPORTPREFIX = "input";
-
   public static final String OUTPUTPORTPREFIX = "output";
 
   public Port syncInput = null;
   private PortHandler syncInputHandler = null;
   private List<Port> inputPorts = null;
-
   private List<Port> outputPorts = null;
   private List<Boolean> finishRequests = null;
 
@@ -75,9 +71,9 @@ public class Synchronizer extends Actor {
     super(container, name);
     syncInput = PortFactory.getInstance().createInputPort(this, "syncInput", null);
     // Create the lists to which the ports can be added
-    inputPorts = new ArrayList(5);
-    outputPorts = new ArrayList(5);
-    finishRequests = new ArrayList(5);
+    inputPorts = new ArrayList<Port>(5);
+    outputPorts = new ArrayList<Port>(5);
+    finishRequests = new ArrayList<Boolean>(5);
 
     // Create the parameters
     numberOfPorts = new Parameter(this, NUMBER_OF_PORTS, new IntToken(0));
@@ -109,28 +105,22 @@ public class Synchronizer extends Actor {
 
   }
 
-  protected String getExtendedInfo() {
-    return numberOfPorts != null ? numberOfPorts.getExpression() : "0";
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
   }
-
+  
   protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     for (int i = 0; i < finishRequests.size(); ++i) {
       finishRequests.set(i, Boolean.FALSE);
     }
-    syncInputHandler = new PortHandler(syncInput);
+    syncInputHandler = createPortHandler(syncInput);
     if (syncInput.getWidth() > 0) {
       syncInputHandler.start();
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-
   }
 
   protected void doFire() throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - entry");
-
     // just loop over all input ports
     // when we've passed all of them, this means
     // we've seen messages on all of them
@@ -140,10 +130,8 @@ public class Synchronizer extends Actor {
     Token token = syncInputHandler.getToken();
     isFiring = true;
 
-    if (token != null) {
-      if (logger.isDebugEnabled()) {
-        logger.debug(getInfo() + " - doFire() - received msg on port " + syncInput.getName());
-      }
+    if (token != null && !token.isNil()) {
+      getLogger().debug("{} doFire() - received msg on {}", getFullName(), syncInput);
       int nrPorts = inputPorts.size();
       ManagedMessage[] messages = new ManagedMessage[nrPorts];
       for (int i = 0; i < nrPorts; ++i) {
@@ -153,13 +141,13 @@ public class Synchronizer extends Actor {
             ManagedMessage msg = MessageHelper.getMessage(inputPort);
             if (msg != null) {
               messages[i] = msg;
-              if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - received msg on port " + inputPort.getName());
+              getLogger().debug("{} doFire() - received {}", getFullName(), getAuditTrailMessage(msg, inputPort));
             } else {
               finishRequests.set(i, Boolean.TRUE);
-              if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - found exhausted port " + inputPort.getName());
+              getLogger().debug("{} doFire() - found exhausted port {}", getFullName(), inputPort);
             }
           } catch (PasserelleException e) {
-            throw new ProcessingException("Error reading from port", inputPort, e);
+            throw new ProcessingException(ErrorCode.MSG_DELIVERY_FAILURE, "Error reading from port", inputPort, e);
           }
         }
       }
@@ -178,13 +166,6 @@ public class Synchronizer extends Actor {
     } else {
       requestFinish();
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - exit");
-  }
-
-  protected String getAuditTrailMessage(ManagedMessage message, Port port) {
-    // no need for audit trail logging
-    return null;
   }
 
   /**
@@ -199,10 +180,7 @@ public class Synchronizer extends Actor {
   }
 
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - entry - attribute :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     // Change numberOfOutputs
     if (attribute == numberOfPorts) {
       int nrPorts = inputPorts.size();
@@ -244,7 +222,7 @@ public class Synchronizer extends Actor {
             outputPorts.add(extraOutputPort);
             finishRequests.add(Boolean.FALSE);
           } catch (NameDuplicationException e) {
-            logger.error("", e);
+            LOGGER.error("", e);
             throw new IllegalActionException(this, e, "Error for index " + i);
           }
         }
@@ -253,9 +231,6 @@ public class Synchronizer extends Actor {
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - exit");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 }

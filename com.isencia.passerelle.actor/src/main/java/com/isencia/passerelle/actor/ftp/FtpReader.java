@@ -14,9 +14,9 @@
  */
 package com.isencia.passerelle.actor.ftp;
 
-import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ptolemy.data.BooleanToken;
 import ptolemy.data.StringToken;
 import ptolemy.data.expr.Parameter;
@@ -25,17 +25,19 @@ import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
+
 import com.isencia.message.IReceiverChannel;
 import com.isencia.message.extractor.TextLineMessageExtractor;
 import com.isencia.message.ftp.FtpReceiverChannel;
 import com.isencia.passerelle.actor.TriggeredChannelSource;
 
 /**
- * @author Bram Bogaert
+ * @author Bram
  */
 public class FtpReader extends TriggeredChannelSource {
+  private static final long serialVersionUID = 1L;
 
-  private static Logger logger = LoggerFactory.getLogger(FtpReader.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(FtpReader.class);
 
   // Parameters
   public Parameter serverParam = null;
@@ -99,66 +101,58 @@ public class FtpReader extends TriggeredChannelSource {
         + "<line x1=\"0\" y1=\"10\" x2=\"0\" y2=\"-5\" " + "style=\"stroke-width:1.0;stroke:gray\"/>\n" + "</svg>\n");
   }
 
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
-    // Define actions to be taken when a parameter/atribute has been changed
-    if (attribute == serverParam) { // Change 1x
-      StringToken aToken = (StringToken) serverParam.getToken(); // Change 1x
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
+    if (attribute == serverParam) {
+      StringToken aToken = (StringToken) serverParam.getToken();
       if ((aToken != null) && (aToken.stringValue().length() > 0)) {
-        server = aToken.stringValue(); // Change 1x
-        logger.debug("Server changed to : " + server); // Change 2x
+        server = aToken.stringValue();
+        getLogger().debug("{} Server changed to {}", getFullName(), server);
       }
     } else if (attribute == userParam) {
       StringToken aToken = (StringToken) userParam.getToken();
       if ((aToken != null) && (aToken.stringValue().length() > 0)) {
         user = aToken.stringValue();
-        logger.debug("User changed to : " + user);
+        getLogger().debug("{} User changed to {}", getFullName(), user);
       }
     } else if (attribute == passwordParam) {
       StringToken aToken = (StringToken) passwordParam.getToken();
       if ((aToken != null) && (aToken.stringValue().length() > 0)) {
         password = aToken.stringValue();
-        logger.debug("Password changed to : " + password);
+        getLogger().debug("{} Password changed to {}", getFullName(), password);
       }
     } else if (attribute == isBinaryTransferParam) {
       BooleanToken aToken = (BooleanToken) isBinaryTransferParam.getToken();
       if (aToken != null) {
         isBinaryTransfer = aToken.booleanValue();
-        logger.debug("Binary transfer changed to : " + isBinaryTransfer);
+        getLogger().debug("{} Binary transfer changed to {}", getFullName(), isBinaryTransfer);
       }
     } else if (attribute == isPassiveModeParam) {
       BooleanToken aToken = (BooleanToken) isPassiveModeParam.getToken();
       if (aToken != null) {
         isPassiveMode = aToken.booleanValue();
-        logger.debug("Passive mode changed to : " + isPassiveMode);
+        getLogger().debug("{} Passive mode changed to {}", getFullName(), isPassiveMode);
       }
     } else if (attribute == fileParam) {
       StringToken aToken = (StringToken) fileParam.getToken();
       if ((aToken != null) && (aToken.stringValue().length() > 0)) {
         file = aToken.stringValue();
-        logger.debug("File changed to : " + file);
+        getLogger().debug("{} File changed to {}", getFullName(), file);
       }
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
-  }
-
-  protected String getExtendedInfo() {
-    // Normally used to output object specific information,
-    // eg. port and host numbers.
-    return this.server;
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected IReceiverChannel createChannel() {
     IReceiverChannel res = null;
-    res = new FtpReceiverChannel(new File(file), server, user, password, isBinaryTransfer, isPassiveMode, new TextLineMessageExtractor());
+    res = new FtpReceiverChannel(file, server, user, password, isBinaryTransfer, isPassiveMode, new TextLineMessageExtractor());
     return res;
   }
 }

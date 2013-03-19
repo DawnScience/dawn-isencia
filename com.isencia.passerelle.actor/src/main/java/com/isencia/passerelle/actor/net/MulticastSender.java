@@ -39,8 +39,8 @@ import com.isencia.passerelle.actor.ChannelSink;
  */
 
 public class MulticastSender extends ChannelSink {
-
-  private static Logger logger = LoggerFactory.getLogger(MulticastSender.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(MulticastSender.class);
 
   private int port = 4446;
   private String group = "230.0.0.1";
@@ -60,18 +60,18 @@ public class MulticastSender extends ChannelSink {
    */
   public MulticastSender(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
-
-    // Parameters
     groupParam = new StringParameter(this, "group");
     groupParam.setExpression(getGroup());
     portParam = new Parameter(this, "port", new IntToken(getPort()));
     portParam.setTypeEquals(BaseType.INT);
-
   }
 
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  };
+  
   /**
-   * Gets the group.
-   * 
    * @return Returns a String
    */
   public String getGroup() {
@@ -79,8 +79,6 @@ public class MulticastSender extends ChannelSink {
   }
 
   /**
-   * Sets the group.
-   * 
    * @param group The group to set
    */
   public void setGroup(String group) {
@@ -88,8 +86,6 @@ public class MulticastSender extends ChannelSink {
   }
 
   /**
-   * Gets the port.
-   * 
    * @return Returns a int
    */
   public int getPort() {
@@ -97,19 +93,10 @@ public class MulticastSender extends ChannelSink {
   }
 
   /**
-   * Sets the port.
-   * 
    * @param port The port to set
    */
   public void setPort(int port) {
     this.port = port;
-  }
-
-  /**
-   * @see PasserelleSink#getMessageSenderInfo()
-   */
-  protected String getExtendedInfo() {
-    return getGroup() + ":" + getPort();
   }
 
   /**
@@ -119,9 +106,7 @@ public class MulticastSender extends ChannelSink {
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == portParam) {
       IntToken portToken = (IntToken) portParam.getToken();
       if (portToken != null && portToken.intValue() > 0) {
@@ -132,20 +117,13 @@ public class MulticastSender extends ChannelSink {
       if (groupToken != null && groupToken.stringValue().length() > 0) {
         setGroup(groupToken.stringValue());
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-  }
-
-  protected ISenderChannel createChannel() {
-    ISenderChannel res = null;
-    try {
-      res = new MulticastSenderChannel(getGroup(), getPort());
-    } catch (ChannelException e) {
-      logger.error("Error creating MulticastSenderChannel for " + getInfo(), e);
     }
-    return res;
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
+  protected ISenderChannel createChannel() throws ChannelException {
+    return new MulticastSenderChannel(getGroup(), getPort());
+  }
 }

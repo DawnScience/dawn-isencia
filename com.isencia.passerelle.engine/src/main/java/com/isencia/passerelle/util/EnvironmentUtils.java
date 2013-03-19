@@ -19,8 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import com.isencia.constants.IPropertyNames;
 
-import ptolemy.util.MessageHandler;
-
 
 /**
  * EnvironmentUtils
@@ -44,7 +42,7 @@ public class EnvironmentUtils {
 	/**
 	 * Returns the application root folder. 
 	 * 
-	 * If a system property be.isencia.home is defined, this is taken as the root folder.
+	 * If a system property com.isencia.home is defined, this is taken as the root folder.
 	 * If not, the current working directory of the Java process is taken.
 	 * 
 	 * @return

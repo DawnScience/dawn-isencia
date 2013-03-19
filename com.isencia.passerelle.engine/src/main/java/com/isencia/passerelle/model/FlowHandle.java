@@ -15,6 +15,7 @@
 package com.isencia.passerelle.model;
 
 import java.net.URL;
+import java.util.Date;
 
 /**
  * Represents a handle to a (typically remote) flow/model resource.
@@ -41,8 +42,13 @@ public class FlowHandle {
 	private String name;
 	private URL authorativeResourceLocation;
 	private String moml;
+	private Date creationTS;
 	
-	/**
+	public Date getCreationTS() {
+    return creationTS;
+  }
+
+  /**
 	 * if the handle relates to a flow that is executing (at least at the moment 
 	 * when the handle is constructed), the UUID identifying the execution instance
 	 * is stored in execId.
@@ -52,7 +58,17 @@ public class FlowHandle {
 	private String execId;
 	private URL execResourceLocation;
 	
-	/**
+	private Flow localFlow;
+	
+	public Flow getLocalFlow() {
+    return localFlow;
+  }
+
+  public void setLocalFlow(Flow localFlow) {
+    this.localFlow = localFlow;
+  }
+
+  /**
 	 * 
 	 * @param id
 	 * @param name
@@ -63,8 +79,26 @@ public class FlowHandle {
 		this.code = name;
 		this.name = name;
 		this.authorativeResourceLocation = authorativeResourceLocation;
+		this.creationTS = new Date();
 	}
 	
+	/**
+	 * FlowHandle for a locally created Flow instance.
+	 * It takes the flow's full name as the handle's name.
+	 * 
+	 * @param id
+	 * @param flow should be not-null!
+	 * @param authorativeResourceLocation
+	 */
+  public FlowHandle(Long id, Flow flow, URL authorativeResourceLocation) {
+    this.id = id;
+    this.code = name;
+    this.localFlow = flow;
+    this.name = flow.getFullName();
+    this.authorativeResourceLocation = authorativeResourceLocation;
+    this.creationTS = new Date();
+  }
+  
 	void setName(String name) {
 		this.name = name;
 	}

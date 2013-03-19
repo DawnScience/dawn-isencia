@@ -20,28 +20,34 @@ public interface Project {
 	String getCode();
 		
 	/**
-	 * @param seqCode the unique code identifying the sequence in the project 
+	 * @param seqCode the unique code identifying the flow in the project 
 	 * (also unique within the complete repository??)
-	 * @return the sequence in this project, for the given seqCode, or null if not found
+	 * @return the sequence in this project, for the given flowCode, or null if not found
+	 */
+	Flow getSubModel(String flowCode);
+	/**
+	 * @param flowCode the unique code identifying the flow in the project 
+	 * (also unique within the complete repository??)
+	 * @return the sequence in this project, for the given flowCode, or null if not found
 	 */
 	Flow getFlow(String flowCode);
 
 	MetaData getFlowMetaData(String flowCode);
 	
 	/**
-	 * @param seqCode the unique code identifying the sequence in the project 
+	 * @param seqCode the unique code identifying the flow in the project 
 	 * (also unique within the complete repository??)
-	 * @return the sequence in this project, for the given seqCode, or null if not found
+	 * @return the sequence in this project, for the given flowCode, or null if not found
 	 */
 	Long getFlowId(String flowCode);
 	/**
 	 * 
-	 * @return an array of all sequences defined within this project
+	 * @return an array of all flows defined within this project
 	 */
 	String[] getAllFlows();
 	
 	/**
-	 * @return the identifiers of all the sequences
+	 * @return the identifiers of all the flows
 	 */
 	Long[] getAllFlowIds();
 	
@@ -61,4 +67,5 @@ public interface Project {
 	String[] getAllKnowledgeBaseCodes();
 	
 	Long getId();
+
 }

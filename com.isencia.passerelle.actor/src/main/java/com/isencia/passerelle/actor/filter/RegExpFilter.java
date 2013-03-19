@@ -38,19 +38,13 @@ import com.isencia.passerelle.message.MessageHelper;
  * @author erwin
  */
 public class RegExpFilter extends Filter {
-  // ~ Static variables/initializers
-  // __________________________________________________________________________________________________________________________
 
-  private static Logger logger = LoggerFactory.getLogger(RegExpFilter.class);
+  private static final long serialVersionUID = 1L;
 
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
+  private static Logger LOGGER = LoggerFactory.getLogger(RegExpFilter.class);
 
   public Parameter expressionParam = null;
   private Pattern pattern = null;
-
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
 
   /**
    * Construct an actor in the specified container with the specified name.
@@ -67,28 +61,26 @@ public class RegExpFilter extends Filter {
     expressionParam = new StringParameter(this, "Expression");
     expressionParam.setExpression("");
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == expressionParam) {
       String tmp = ((StringToken) expressionParam.getToken()).stringValue();
-
       try {
         pattern = Pattern.compile(tmp);
-        logger.debug("Expression set to : " + tmp);
+        getLogger().debug("Expression set to : {}", tmp);
       } catch (PatternSyntaxException e) {
-        throw new IllegalActionException("Invalid RegExp expression : " + tmp + " : " + e.getMessage());
+        throw new IllegalActionException(this,e,"Invalid RegExp expression : " + tmp);
       }
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   /**
@@ -103,25 +95,18 @@ public class RegExpFilter extends Filter {
     } else if (msg instanceof ManagedMessage) {
       ManagedMessage message = (ManagedMessage) msg;
       Object[] inputs = MessageHelper.getFilteredContent(message, new String[] { "text/plain", "text/html", "text/xml" });
-
       if ((inputs != null) && (inputs.length > 0)) {
         for (int i = 0; (i < inputs.length) && !matchFound; ++i) {
-          if (logger.isDebugEnabled()) {
-            logger.debug("Content :" + inputs[i]);
-          }
-
           if (inputs[i] instanceof String) {
             matchFound = pattern.matcher((String) inputs[i]).matches();
           }
         }
-      } else if (logger.isDebugEnabled()) {
-        logger.debug(getInfo() + " : no valid content in " + msg);
+      } else {
+        LOGGER.debug("{} no valid content in {}",getFullName(),msg);
       }
+    } else {
+      LOGGER.debug("{} no valid content in {}",getFullName(),msg);
     }
     return matchFound;
-  }
-
-  protected String getExtendedInfo() {
-    return pattern.pattern();
   }
 }

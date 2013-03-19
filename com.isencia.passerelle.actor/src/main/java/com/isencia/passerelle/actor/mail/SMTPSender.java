@@ -36,7 +36,8 @@ import com.isencia.passerelle.message.MessageException;
 //// SMTPSender
 
 public class SMTPSender extends ChannelSink {
-
+  private static final long serialVersionUID = 1L;
+  
   public final static String MAILSERVER_PARAM = "MailServer";
   public final static String FROM_PARAM = "From";
   public final static String TO_PARAM = "To";
@@ -49,30 +50,20 @@ public class SMTPSender extends ChannelSink {
   public final static String BCC_HEADER = "Bcc";
   public final static String SUBJECT_HEADER = "Subject";
 
-  // ~ Instance/static variables .............................................
+  private static Logger LOGGER = LoggerFactory.getLogger(SMTPSender.class);
 
-  private static Logger logger = LoggerFactory.getLogger(SMTPSender.class);
-
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
   public Parameter mailServerParam;
   public Parameter fromParam;
   public Parameter toParam;
   public Parameter subjectParam;
 
-  // /////////////////////////////////////////////////////////////////
-  // // private variables ////
   private String mailHost = null;
   private String from = null;
   private String to = null;
   private String subject = null;
 
-  // ~ Constructors ..........................................................
-
   public SMTPSender(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
-
-    // Parameters
     mailServerParam = new StringParameter(this, MAILSERVER_PARAM);
     mailServerParam.setExpression(System.getProperty("mail.host", "host"));
     fromParam = new StringParameter(this, FROM_PARAM);
@@ -83,55 +74,45 @@ public class SMTPSender extends ChannelSink {
     registerConfigurableParameter(subjectParam);
   }
 
-  // ~ Methods ...............................................................
-
-  // /////////////////////////////////////////////////////////////////
-  // // public methods ////
-
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   /**
    * @param attribute The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == mailServerParam) {
-
       StringToken mailServerToken = (StringToken) mailServerParam.getToken();
-
       if (mailServerToken != null && mailServerToken.stringValue().length() > 0) {
         mailHost = mailServerToken.stringValue();
-        logger.debug("Mailhost Attribute changed to : " + mailHost);
+        getLogger().debug("{} Mailhost Attribute changed to {}", getFullName(), mailHost);
       }
     } else if (attribute == fromParam) {
-
       StringToken fromToken = (StringToken) fromParam.getToken();
-
       if (fromToken != null) {
         from = fromToken.stringValue();
-        logger.debug("From Attribute changed to : " + from);
+        getLogger().debug("{} From Attribute changed to {}", getFullName(), from);
       }
     } else if (attribute == toParam) {
-
       StringToken toToken = (StringToken) toParam.getToken();
-
       if (toToken != null) {
         to = toToken.stringValue();
-        logger.debug("To Attribute changed to : " + to);
+        getLogger().debug("{} To Attribute changed to {}", getFullName(), to);
       }
     } else if (attribute == subjectParam) {
-
       StringToken subjectToken = (StringToken) subjectParam.getToken();
-
       if (subjectToken != null) {
         subject = subjectToken.stringValue();
-        logger.debug("Subject Attribute changed to : " + subject);
+        getLogger().debug("{} Subject Attribute changed to {}", getFullName(), subject);
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected String getExtendedInfo() {
@@ -146,25 +127,18 @@ public class SMTPSender extends ChannelSink {
     IMessageInterceptorChain interceptors = new MessageInterceptorChain();
     interceptors.add(new IMessageInterceptor() {
       public Object accept(Object message) throws MessageException {
-
         ManagedMessage managedMsg = (ManagedMessage) message;
-
         // Check mailhost
         if (!managedMsg.hasBodyHeader(MAILHOST_HEADER) && mailHost != null && mailHost.length() > 0) managedMsg.addBodyHeader(MAILHOST_HEADER, mailHost);
-
         // Check from
         if (!managedMsg.hasBodyHeader(FROM_HEADER) && from != null && from.length() > 0) managedMsg.addBodyHeader(FROM_HEADER, from);
-
         // Check to
         if (!managedMsg.hasBodyHeader(TO_HEADER) && to != null && to.length() > 0) managedMsg.addBodyHeader(TO_HEADER, to);
-
         // Check subject
         if (!managedMsg.hasBodyHeader(SUBJECT_HEADER) && subject != null && subject.length() > 0) managedMsg.addBodyHeader(SUBJECT_HEADER, subject);
         return managedMsg;
       }
-
     });
-
     interceptors.add(new MessageToMailMessageConverter(isPassThrough()));
     return interceptors;
   }

@@ -1,6 +1,17 @@
-/**
- * 
- */
+/* Copyright 2012 - iSencia Belgium NV
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 package com.isencia.passerelle.actor.error;
 
 import org.slf4j.Logger;
@@ -20,24 +31,29 @@ import com.isencia.passerelle.actor.v5.ProcessResponse;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.message.ManagedMessage;
+import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.message.internal.ErrorMessageContainer;
 
 /**
  * An actor that extracts the ManagedMessage from ErrorMessages received
- * on its input port, and sends it out. 
+ * on its input port, and sends it out.
+ * It can also send out the description of the contained PasserelleException
+ * via the <code>errorDescrOutput</code> port.
+ *  
  * The error can optionally be logged.
- * 
+ * <p>
  * This is useful to link to an error-output of one or more actors,
  * to implement an "ignore error" behaviour, combined with continued
  * sequence operations "as-if-everything-was-OK".
  * 
  * In this respect it differs from the plain DevNullActor, which
  * discards the received msg and thus effectively interrupts the sequence.
- * 
+ * </p>
+ * <p>
  * If the received message is not an ErrorMessage, or it does not
  * contain a ManagedMessage as the error's context, it is just forwarded
  * to the output as is.
- * 
+ * </p>
  * @author delerw
  *
  */
@@ -45,10 +61,11 @@ public class ErrorCatcher extends Actor {
 
 	private static final long serialVersionUID = 1L;
 
-	private final static Logger logger = LoggerFactory.getLogger(ErrorCatcher.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(ErrorCatcher.class);
 
 	public Port input;
 	public Port output;
+	public Port errorDescrOutput;
 	public Parameter logReceivedMessages;
 
 	/**
@@ -62,6 +79,7 @@ public class ErrorCatcher extends Actor {
 		super(container, name);
 		input = PortFactory.getInstance().createInputPort(this, null);
 		output = PortFactory.getInstance().createOutputPort(this);
+		errorDescrOutput = PortFactory.getInstance().createOutputPort(this, "errorDescrOutput");
 		
 		logReceivedMessages = new Parameter(this,"Log received messages", new BooleanToken(false));
 		logReceivedMessages.setTypeEquals(BaseType.BOOLEAN);
@@ -97,6 +115,18 @@ public class ErrorCatcher extends Actor {
 				if(context!=null && context instanceof ManagedMessage) {
 					outputMsg = (ManagedMessage) context;
 				}
+				if(errorMsg.getException()!=null) {
+  				String errDescr = errorMsg.getException().getMessage();
+  				if(errDescr!=null) {
+  				  try {
+              ManagedMessage errDescrOutputMsg = createMessage();
+              errDescrOutputMsg.setBodyContentPlainText(errDescr);
+              response.addOutputMessage(errorDescrOutput, errDescrOutputMsg);
+            } catch (MessageException e) {
+              getLogger().error("Error sending error description",e);
+            }
+  				}
+				}
 				if(((BooleanToken)logReceivedMessages.getToken()).booleanValue()) {
 				  getLogger().info("Discarding error for context "+errorMsg.getContext(),errorMsg.getRootException());
 				}
@@ -110,6 +140,6 @@ public class ErrorCatcher extends Actor {
 
   @Override
   protected Logger getLogger() {
-    return logger;
+    return LOGGER;
   }
 }

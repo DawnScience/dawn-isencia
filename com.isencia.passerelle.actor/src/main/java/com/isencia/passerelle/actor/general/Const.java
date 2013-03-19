@@ -25,23 +25,23 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.TriggeredSource;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
-//////////////////////////////////////////////////////////////////////////
-//// Const
 /**
  * Produce a constant output.
  */
 
 public class Const extends TriggeredSource {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -6555818249656144384L;
 	
-  private static Logger logger = LoggerFactory.getLogger(Const.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(Const.class);
   private boolean messageSent = false;
+  /**
+   * The value produced by this constant source. By default, it contains an
+   * StringToken with an empty string.
+   */
+  public Parameter value;
 
   /**
    * Construct a constant source with the given container and name. Create the
@@ -60,53 +60,33 @@ public class Const extends TriggeredSource {
     value = new StringParameter(this, "value");
     value.setExpression("");
     registerConfigurableParameter(value);
-
+  }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
   }
 
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
-
-  /**
-   * The value produced by this constant source. By default, it contains an
-   * StringToken with an empty string.
-   */
-  public Parameter value;
-
   protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     messageSent = false;
     super.doInitialize();
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
 
   protected ManagedMessage getMessage() throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     if (messageSent && !isTriggerConnected()) return null;
-
     ManagedMessage dataMsg = null;
     try {
       String tokenMessage = ((StringToken) value.getToken()).stringValue();
       dataMsg = createMessage(tokenMessage, "text/plain");
     } catch (Exception e) {
-      throw new ProcessingException(getInfo() + " - getMessage() generated exception " + e, value, e);
+      throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error creating msg", value, e);
     } finally {
       messageSent = true;
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-
     return dataMsg;
-  }
-
-  protected String getExtendedInfo() {
-    return value.getExpression();
   }
 
   protected boolean mustWaitForTrigger() {
     return true;
   }
-
 }

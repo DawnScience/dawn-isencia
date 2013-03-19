@@ -27,7 +27,7 @@ import com.isencia.passerelle.actor.gui.OptionsFactory;
  * @author erwin
  */
 public class SocketCltSndOptionsFactory extends OptionsFactory {
-
+  private static final long serialVersionUID = 1L;
   private static final String FS_CHAR = "FS msg delimiter char";
   // private static final String CONNECTION_CLOSED = "Connection closed";
   private static final String LINEFEED = "Linefeed";

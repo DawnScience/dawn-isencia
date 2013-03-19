@@ -60,7 +60,7 @@ public class TypeConversionChain implements TypeConverter {
 		else 
 			this.converterProvider = DEFAULT_CONVERTER_PROVIDER;
 		
-		logger.info("Set TypeConverterProvider to "+this.converterProvider.getName());
+		logger.info("Set TypeConverterProvider to {}",this.converterProvider.getName());
 	}
 
 	// used internally by ArrayConverter

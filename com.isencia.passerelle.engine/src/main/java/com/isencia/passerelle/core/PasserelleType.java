@@ -73,18 +73,6 @@ public class PasserelleType implements Type, Serializable {
         return TypeLattice.leastUpperBound(this, rightArgumentType);
     }
 
-    /** Determine if the argument represents the same BaseType as this
-     *  object.
-     *  @param object Another object.
-     *  @return True if the argument represents the same BaseType as
-     *   this object; false otherwise.
-     */
-    public boolean equals(Object object) {
-        // since BaseType is a type safe enumeration, can use == to
-        // test equality.
-        return this == object;
-    }
-
     /** Return the class for tokens that this basetype represents.
      */
     public Class getTokenClass() {

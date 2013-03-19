@@ -25,15 +25,17 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.message.ftp.FtpSenderChannel;
 import com.isencia.passerelle.actor.ProcessingException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
 /**
  * This actor writes all received msgs to a file on an ftp-server.
  * 
- * @author Bram Bogaert
+ * @author Bram
  */
 public class FtpFileWriter extends FtpWriter {
-  private static Logger logger = LoggerFactory.getLogger(FtpFileWriter.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(FtpFileWriter.class);
 
   public Parameter overwriteParam = null;
   private boolean overwrite = false;
@@ -51,38 +53,30 @@ public class FtpFileWriter extends FtpWriter {
    */
   public FtpFileWriter(CompositeEntity container, String name) throws IllegalActionException, NameDuplicationException {
     super(container, name);
-
     overwriteParam = new Parameter(this, OVERWRITE_PARAM, new BooleanToken(overwrite));
     overwriteParam.setTypeEquals(BaseType.BOOLEAN);
   }
 
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
-    // Define actions to be taken when a parameter/atribute has been changed
-    if (attribute == overwriteParam) { // Change 1x
-      BooleanToken aToken = (BooleanToken) overwriteParam.getToken(); // Change
-                                                                      // 1x
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
+    if (attribute == overwriteParam) {
+      BooleanToken aToken = (BooleanToken) overwriteParam.getToken();
       if (aToken != null) {
-        overwrite = aToken.booleanValue(); // Change 1x
-        logger.debug("Overwrite changed to : " + overwrite); // Change 2x
+        overwrite = aToken.booleanValue();
+        getLogger().debug("{} Overwrite changed to {}", getFullName(), overwrite);
       }
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected void doFire(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo());
-    }
-
     try {
       if (message.getBodyHeader("toFile") != null) {
         if (getChannel().isOpen()) {
@@ -92,20 +86,12 @@ public class FtpFileWriter extends FtpWriter {
         ((FtpSenderChannel) getChannel()).setRemoteFileName(filename);
         getChannel().open();
       }
-
       this.getChannel().sendMessage(message);
-
-      if (logger.isInfoEnabled()) {
-        logger.info(getInfo() + " - Sent message :" + message);
-      }
+      LOGGER.debug("{} - Sent message : {}", getFullName(), getAuditTrailMessage(message, null));
     } catch (InterruptedException e) {
       // do nothing, just means we've got to stop
     } catch (Exception e) {
-      throw new ProcessingException(getInfo() + " - doFire() generated exception " + e, message, e);
-    }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
+      throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "", this, message, e);
     }
   }
 }

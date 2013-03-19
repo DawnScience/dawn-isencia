@@ -11,15 +11,13 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-*/
+ */
 package com.isencia.passerelle.actor;
 
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
@@ -27,129 +25,95 @@ import com.isencia.message.IMessageSender;
 import com.isencia.message.ISenderChannel;
 import com.isencia.message.interceptor.IMessageInterceptorChain;
 import com.isencia.message.interceptor.MessageInterceptorChain;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.interceptor.MessageToTextConverter;
 
-
 /**
- * @version 1.0
- * @author edeley
+ * @author erwin
  */
 public abstract class MessageSenderSink extends Sink {
-    //~ Instance/static variables ..............................................................................................................................
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(MessageSenderSink.class);
+  private IMessageSender messageSender = null;
 
-    private static Logger logger = LoggerFactory.getLogger(MessageSenderSink.class);
-    private IMessageSender messageSender = null;
+  /**
+   * Constructor for ChannelSink.
+   * 
+   * @param container
+   * @param name
+   * @throws NameDuplicationException
+   * @throws IllegalActionException
+   */
+  public MessageSenderSink(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
+    super(container, name);
+  }
 
-    //~ Constructors ...........................................................................................................................................
-
-    /**
-     * Constructor for ChannelSink.
-     * @param container
-     * @param name
-     * @throws NameDuplicationException
-     * @throws IllegalActionException
-     */
-    public MessageSenderSink(CompositeEntity container, String name)
-                      throws NameDuplicationException, IllegalActionException {
-        super(container, name);
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
+  /**
+   * 
+   * @throws IllegalActionException
+   */
+  protected void sendMessage(ManagedMessage message) throws ProcessingException {
+    if (message != null) {
+      messageSender.sendMessage(message);
+    } else {
+      requestFinish();
     }
+  }
 
-    //~ Methods ................................................................................................................................................
-
-    /**
-     * DOCUMENT ME !
-     * 
-     * @throws IllegalActionException
-     */
-    protected void sendMessage(ManagedMessage message) throws ProcessingException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
-
-		if(message!=null) {
-			messageSender.sendMessage(message);
-		} else {
-			requestFinish();
-		}
-			
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit ");
-    }
-
-    protected void doInitialize() throws InitializationException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
-
-        super.doInitialize();
-        
-        messageSender = createMessageSender();
-
-        if (messageSender == null) {
-			throw new InitializationException(PasserelleException.Severity.FATAL,"MessageSender for " + getInfo() + " not created correctly.",this,null);
-        } else {
-            IMessageInterceptorChain interceptors = createInterceptorChainOnEnter();
-
-            if (interceptors == null) {
-                // default implementation
-                if (!isPassThrough()) {
-                    interceptors = new MessageInterceptorChain();
-                    interceptors.add(new MessageToTextConverter());
-                }
-            }
-
-            Collection channels = messageSender.getChannels();
-            Iterator iter = channels.iterator();
-
-            while (iter.hasNext()) {
-                ISenderChannel element = (ISenderChannel)iter.next();
-                element.setInterceptorChainOnEnter(interceptors);
-            }
-
-            messageSender.open();
-			if(logger.isInfoEnabled()) {
-				logger.info(getInfo()+" - Opened :"+getMessageSender());
-			}
+  protected void doInitialize() throws InitializationException {
+    super.doInitialize();
+    messageSender = createMessageSender();
+    if (messageSender == null) {
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "MessageSender not created correctly.", this, null);
+    } else {
+      IMessageInterceptorChain interceptors = createInterceptorChainOnEnter();
+      if (interceptors == null) {
+        // default implementation
+        if (!isPassThrough()) {
+          interceptors = new MessageInterceptorChain();
+          interceptors.add(new MessageToTextConverter());
         }
-
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit ");
+      }
+      Collection<ISenderChannel> channels = messageSender.getChannels();
+      Iterator<ISenderChannel> iter = channels.iterator();
+      while (iter.hasNext()) {
+        ISenderChannel element = iter.next();
+        element.setInterceptorChainOnEnter(interceptors);
+      }
+      messageSender.open();
+      getLogger().debug("{} - Opened : {}", getFullName(), getMessageSender());
     }
+  }
 
-    protected void doWrapUp() throws TerminationException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
+  protected void doWrapUp() throws TerminationException {
+    super.doWrapUp();
+    getMessageSender().close();
+    getLogger().debug("{} - Closed : {}", getFullName(), getMessageSender());
+  }
 
-        super.doWrapUp();
-        getMessageSender().close();
-		if(logger.isInfoEnabled()) {
-			logger.info(getInfo()+" - Closed :"+getMessageSender());
-		}
+  /**
+   * @return a chain of interceptors that are invoked when the msg enters the message sender
+   */
+  protected abstract IMessageInterceptorChain createInterceptorChainOnEnter();
 
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit ");
-    }
+  /**
+   * @return the message sender encapsulated by this actor
+   */
+  protected abstract IMessageSender createMessageSender();
 
-    /**
-     * DOCUMENT ME !
-     * 
-     * @return  
-     */
-    protected abstract IMessageInterceptorChain createInterceptorChainOnEnter();
-
-    /**
-     * DOCUMENT ME !
-     * 
-     * @return  
-     */
-    protected abstract IMessageSender createMessageSender();
-	/**
-	 * Returns the messageSender.
-	 * @return IMessageSender
-	 */
-	public IMessageSender getMessageSender() {
-		return messageSender;
-	}
-
+  /**
+   * Returns the messageSender.
+   * 
+   * @return IMessageSender
+   */
+  public IMessageSender getMessageSender() {
+    return messageSender;
+  }
 
 }

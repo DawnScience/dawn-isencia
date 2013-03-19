@@ -21,6 +21,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Transformer;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.message.MessageFactory;
@@ -34,7 +35,8 @@ import com.isencia.passerelle.message.MessageFactory;
  * @author erwin
  */
 public final class ArrayToSequenceConverter extends Transformer {
-  private static Logger logger = LoggerFactory.getLogger(ArrayToSequenceConverter.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(ArrayToSequenceConverter.class);
 
   /**
    * @param container
@@ -45,10 +47,13 @@ public final class ArrayToSequenceConverter extends Transformer {
   public ArrayToSequenceConverter(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   protected void doFire(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - entry - message :" + message);
-
     try {
       Object content = message.getBodyContent();
       try {
@@ -66,14 +71,7 @@ public final class ArrayToSequenceConverter extends Transformer {
         sendOutputMsg(output, message);
       }
     } catch (MessageException e) {
-      throw new ProcessingException("", message, e);
+      throw new ProcessingException(ErrorCode.MSG_DELIVERY_FAILURE, "", this, message, e);
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " doFire() - exit");
   }
-
-  protected String getExtendedInfo() {
-    return "";
-  }
-
 }

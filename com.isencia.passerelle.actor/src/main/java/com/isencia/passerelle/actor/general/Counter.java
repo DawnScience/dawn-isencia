@@ -27,27 +27,24 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Transformer;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.core.PortHandler;
 import com.isencia.passerelle.core.PortListenerAdapter;
 import com.isencia.passerelle.message.ManagedMessage;
+import com.isencia.passerelle.message.MessageException;
 
 /**
  * Produce a counter output.
  * 
- * @version 1.0
- * @author edeley
+ * @author erwin
  */
 
 public class Counter extends Transformer {
+  private static final long serialVersionUID = 3712075950718358876L;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3712075950718358876L;
-
-  private static Logger logger = LoggerFactory.getLogger(Counter.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(Counter.class);
 
   public Parameter startValueParam;
   private long startValue = 0;
@@ -57,16 +54,17 @@ public class Counter extends Transformer {
   private boolean isReset = true;
 
   /**
-   * Construct a constant source with the given container and name. Create the
-   * <i>value</i> parameter, initialize its value to the default value of an
-   * IntToken with value 1.
+   * Construct a constant source with the given container and name. Create the <i>value</i> parameter, initialize its
+   * value to the default value of an IntToken with value 1.
    * 
-   * @param container The container.
-   * @param name The name of this actor.
-   * @exception IllegalActionException If the entity cannot be contained by the
-   *              proposed container.
-   * @exception NameDuplicationException If the container already has an actor
-   *              with this name.
+   * @param container
+   *          The container.
+   * @param name
+   *          The name of this actor.
+   * @exception IllegalActionException
+   *              If the entity cannot be contained by the proposed container.
+   * @exception NameDuplicationException
+   *              If the container already has an actor with this name.
    */
   public Counter(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
@@ -77,80 +75,70 @@ public class Counter extends Transformer {
     reset = PortFactory.getInstance().createInputPort(this, "reset", null);
   }
 
-  protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
+  protected void doInitialize() throws InitializationException {
     super.doInitialize();
     // If something connected to the reset port, install a handler
     if (reset.getWidth() > 0) {
-      resetHandler = new PortHandler(reset, new PortListenerAdapter() {
+      resetHandler = createPortHandler(reset, new PortListenerAdapter() {
         public void tokenReceived() {
           Token token = resetHandler.getToken();
-          if (logger.isDebugEnabled()) logger.debug(getInfo() + " - Reset Event received");
-          if (token != null) {
+          if (token != null && !token.isNil()) {
+            getLogger().debug("{} Reset Event received", getFullName());
             isReset = true;
           }
         }
       });
-
       resetHandler.start();
     }
-
     setValue(getStartValue());
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
 
   /**
-   * @param attribute The attribute that changed.
+   * @param attribute
+   *          The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == startValueParam) {
       LongToken valueToken = (LongToken) startValueParam.getToken();
       if (valueToken != null) {
         setStartValue(valueToken.longValue());
-        logger.debug("Counter start value changed to : " + getStartValue());
+        getLogger().debug("{} Counter start value changed to {}", getFullName(), getStartValue());
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected void doFire(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     if (isReset) {
       setValue(getStartValue());
       isReset = false;
     }
-
     ManagedMessage newMsg = null;
     try {
       newMsg = createMessage(Long.toString(value++), "text/plain");
     } catch (Exception e) {
-      throw new ProcessingException(getInfo() + " - doFire() generated exception " + e, newMsg, e);
+      throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error creating msg with counter", this, newMsg, e);
     }
+    sendOutputMsg(output, newMsg);
+  }
+
+  protected String getAuditTrailMessage(ManagedMessage message, Port port) {
     try {
-      sendOutputMsg(output, newMsg);
-    } catch (IllegalArgumentException e) {
-      throw new ProcessingException(getInfo() + " - doFire() generated exception " + e, newMsg, e);
+      return "sent message with count " + message.getBodyContentAsString();
+    } catch (MessageException e) {
+      getLogger().error("Error converting msg to string", e);
+      return "";
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
-
-  protected String getAuditTrailMessage(ManagedMessage message, Port port) throws Exception {
-    return "sent message with count " + message.getBodyContentAsString();
-  }
-
-  protected String getExtendedInfo() {
-    return "";
-  }
-
   /**
    * Returns the value.
    * 
@@ -163,7 +151,8 @@ public class Counter extends Transformer {
   /**
    * Sets the value.
    * 
-   * @param value The value to set
+   * @param value
+   *          The value to set
    */
   public void setValue(long value) {
     this.value = value;
@@ -181,7 +170,8 @@ public class Counter extends Transformer {
   /**
    * Sets the startValue.
    * 
-   * @param startValue The startValue to set
+   * @param startValue
+   *          The startValue to set
    */
   public void setStartValue(long startValue) {
     this.startValue = startValue;

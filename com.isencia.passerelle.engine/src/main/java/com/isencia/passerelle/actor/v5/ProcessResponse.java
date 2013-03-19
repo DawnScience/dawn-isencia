@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.isencia.passerelle.message.MessageOutputContext;
 
+import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.message.ManagedMessage;
 
@@ -42,9 +43,12 @@ public class ProcessResponse {
 	private List<MessageOutputContext> outputsInSequence = new ArrayList<MessageOutputContext>();
 
 	private ProcessRequest request;
+	private ProcessingException exception;
+  private ActorContext context;
 
-	public ProcessResponse(ProcessRequest request) {
+	public ProcessResponse(ActorContext context, ProcessRequest request) {
 		this.request=request;
+		this.context = context;
 	}
 
 	public void addOutputMessage(Port outputPort, ManagedMessage outputMsg) {
@@ -71,7 +75,35 @@ public class ProcessResponse {
 		return outputsInSequence.toArray(new MessageOutputContext[outputsInSequence.size()]);
 	}
 
-	public String toString() {
+	/**
+	 * 
+	 * @return null or the exception that has occurred during the processing of the request. 
+	 */
+	public ProcessingException getException() {
+    return exception;
+  }
+
+  public void setException(ProcessingException exception) {
+    this.exception = exception;
+  }
+
+  /**
+   * 
+   * @return the request for which this is the response
+   */
+  public ProcessRequest getRequest() {
+    return request;
+  }
+
+  /**
+   * 
+   * @return the actor context for which this is the response
+   */
+  public ActorContext getContext() {
+    return context;
+  }
+
+  public String toString() {
 		StringBuffer bfr = new StringBuffer();
 		MessageOutputContext[] outputs = getOutputs();
 		bfr.append("\n\tIndependent msgs:");

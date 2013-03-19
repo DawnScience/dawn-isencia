@@ -1,6 +1,17 @@
-/**
- * 
- */
+/* Copyright 2012 - iSencia Belgium NV
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 package com.isencia.passerelle.actor.error;
 
 import java.util.concurrent.BlockingQueue;
@@ -18,10 +29,10 @@ import com.isencia.passerelle.actor.v5.Actor;
 import com.isencia.passerelle.actor.v5.ActorContext;
 import com.isencia.passerelle.actor.v5.ProcessRequest;
 import com.isencia.passerelle.actor.v5.ProcessResponse;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
-import com.isencia.passerelle.domain.cap.Director;
 import com.isencia.passerelle.ext.ErrorCollector;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
@@ -33,34 +44,31 @@ import com.isencia.passerelle.message.MessageException;
  * <ul>
  * <li>log the exception
  * <li>send out the exception msg via errorText output
- * <li>if the error context is a ManagedMessage, send it out via the
- * messageInError output
+ * <li>if the error context is a ManagedMessage, send it out via the messageInError output
  * </ul>
  * </p>
  * 
  * @author delerw
  */
 public class ErrorObserver extends Actor implements ErrorCollector {
+  private static final long serialVersionUID = 1L;
 
-  private final static Logger logger = LoggerFactory.getLogger(ErrorObserver.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(ErrorObserver.class);
 
   private BlockingQueue<PasserelleException> errors = new LinkedBlockingQueue<PasserelleException>();
 
   /**
-   * For each received exception/error, the error is sent out in a new Passerelle ManagedMessage
-   * via this output port.
+   * For each received exception/error, the error is sent out in a new Passerelle ManagedMessage via this output port.
    */
   public Port errorOutput;
-  
+
   /**
-   * For each received exception/error, the error text message is sent out via
-   * this output port.
+   * For each received exception/error, the error text message is sent out via this output port.
    */
   public Port errorTextOutput;
 
   /**
-   * For each received exception/error, if the error context is a
-   * ManagedMessage, send it out via the messageInError output
+   * For each received exception/error, if the error context is a ManagedMessage, send it out via the messageInError output
    */
   public Port messageInErrorOutput;
 
@@ -87,17 +95,7 @@ public class ErrorObserver extends Actor implements ErrorCollector {
   @Override
   protected void doInitialize() throws InitializationException {
     super.doInitialize();
-
-    try {
-      ((Director) getDirector()).addErrorCollector(this);
-    } catch (ClassCastException e) {
-      // means the actor is used without a Passerelle Director
-      // just log this. Only consequence is that we'll never receive
-      // any error messages via acceptError
-      getLogger().info(getInfo() + " - used without Passerelle Director!!");
-    } catch (Exception e) {
-      getLogger().error("Unexpected error while trying to register as error collector", e);
-    }
+    getDirectorAdapter().addErrorCollector(this);
   }
 
   @Override
@@ -123,15 +121,16 @@ public class ErrorObserver extends Actor implements ErrorCollector {
     ManagedMessage errorMsg = createErrorMessage(e);
     response.addOutputMessage(errorOutput, errorMsg);
 
+    ManagedMessage msg = null;
     if (e.getContext() instanceof ManagedMessage) {
-      ManagedMessage msg = (ManagedMessage) e.getContext();
+      msg = (ManagedMessage) e.getContext();
       response.addOutputMessage(messageInErrorOutput, msg);
     }
     try {
       response.addOutputMessage(errorTextOutput, createMessage(e.getMessage(), "text/plain"));
     } catch (MessageException e1) {
       // should not happen, but...
-      throw new ProcessingException("Error generating error text output", e.getContext(), e1);
+      throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error generating error text output", this, msg, e1);
     }
   }
 
@@ -145,35 +144,43 @@ public class ErrorObserver extends Actor implements ErrorCollector {
       }
     }
   }
+  
+  @Override
+  protected void triggerFirstIteration() throws IllegalActionException {
+    // no unconditional triggering here, dude!
+  }
+  @Override
+  protected void triggerNextIteration() throws IllegalActionException {
+    // no unconditional triggering here, dude!
+  }
 
   public void acceptError(PasserelleException e) {
     try {
       errors.put(e);
-      getLogger().error("Error reported ", e);
+      super.triggerNextIteration();
     } catch (InterruptedException e1) {
       // should not happen,
       // or if it does only when terminating the model execution
       getLogger().error("Receipt interrupted for ", e);
+    } catch (IllegalActionException e2) {
+      getLogger().error("Failed to trigger next iteration ", e2);
+      getLogger().error("Error received ", e);
     }
   }
 
   @Override
   protected void doWrapUp() throws TerminationException {
-    try {
-      ((Director) getDirector()).removeErrorCollector(this);
-    } catch (ClassCastException e) {
-    }
+    getDirectorAdapter().removeErrorCollector(this);
     try {
       drainErrorsQueueTo(null);
     } catch (Exception e) {
-      throw new TerminationException(getInfo() + " - doWrapUp() generated exception " + e, errors, e);
+      throw new TerminationException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error draining remaining error queue " + errors, this, e);
     }
-
     super.doWrapUp();
   }
 
   @Override
   protected Logger getLogger() {
-    return logger;
+    return LOGGER;
   }
 }

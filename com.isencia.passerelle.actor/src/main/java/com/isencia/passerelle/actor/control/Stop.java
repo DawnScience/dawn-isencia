@@ -23,13 +23,15 @@ import ptolemy.kernel.util.Nameable;
 import ptolemy.kernel.util.SingletonAttribute;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Sink;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
 //////////////////////////////////////////////////////////////////////////
 //// Stop
 /**
  * SLIGHT VARIATION ON THE PTOLEMY STOP ACTOR, FOR PASSERELLE: STOPS MODEL
- * EXECUTION ON RECEIVING ANY KIND OF MESSAGE, NOT JUST TRUE TOKENS... An actor
+ * EXECUTION ON RECEIVING ANY KIND OF MESSAGE, NOT JUST TRUE TOKENS... 
+ * An actor
  * that stops execution of a model when it receives a true token on any input
  * channel. This is accomplished by calling finish() on the manager, which
  * requests that the current iteration be completed and then the model execution
@@ -68,6 +70,8 @@ import com.isencia.passerelle.message.ManagedMessage;
 
 public class Stop extends Sink {
 
+  private static final long serialVersionUID = 1L;
+
   /**
    * Construct an actor in the specified container with the specified name.
    * 
@@ -90,8 +94,6 @@ public class Stop extends Sink {
   }
 
   public boolean doPostfire() throws IllegalActionException {
-    // by definition, once we get here
-    // we're finished
     return false;
   }
 
@@ -102,14 +104,10 @@ public class Stop extends Sink {
       if (manager != null) {
         manager.finish();
       } else {
-        throw new ProcessingException("Cannot stop without a Manager.", this, null);
+        throw new ProcessingException(ErrorCode.FLOW_EXECUTION_ERROR, "Cannot stop without a Manager.", this, null);
       }
     } else {
-      throw new ProcessingException("Cannot stop without a container that is a " + "CompositeActor.", this, null);
+      throw new ProcessingException(ErrorCode.FLOW_EXECUTION_ERROR, "Cannot stop without a container that is a CompositeActor.", this, null);
     }
-  }
-
-  protected String getExtendedInfo() {
-    return "";
   }
 }

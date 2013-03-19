@@ -30,6 +30,7 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
@@ -39,36 +40,23 @@ import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageHelper;
 
 /**
- * DOCUMENT ME!
- * 
- * @version $Id: Switch.java,v 1.7 2006/02/15 16:34:48 erwin Exp $
- * @author Dirk Jacobs
+ * @author Dirk
  */
 public class Switch extends Actor {
-  // ~ Static variables/initializers
-  // __________________________________________________________________________________________________________________________
 
-  private static Logger logger = LoggerFactory.getLogger(Switch.class);
+  private static final long serialVersionUID = 1L;
 
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
+  private static Logger LOGGER = LoggerFactory.getLogger(Switch.class);
 
   private List<Port> outputPorts = null;
   private PortHandler selectHandler = null;
 
-  // /////////////////////////////////////////////////////////////////
-  // // ports and parameters ////
   public Parameter numberOfOutputs = null;
   public Port input;
   public Port select = null;
 
-  // /////////////////////////////////////////////////////////////////
-  // // variables ////
   private int outputCount = 0;
   private int selected = 0;
-
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
 
   public Switch(CompositeEntity container, String name) throws IllegalActionException, NameDuplicationException {
     super(container, name);
@@ -92,163 +80,115 @@ public class Switch extends Actor {
         + "style=\"stroke-width:2.0\"/>\n" + "<line x1=\"-15\" y1=\"10\" x2=\"0\" y2=\"10\" " + "style=\"stroke-width:1.0;stroke:gray\"/>\n"
         + "<line x1=\"0\" y1=\"10\" x2=\"0\" y2=\"-5\" " + "style=\"stroke-width:1.0;stroke:gray\"/>\n" + "</svg>\n");
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
-  // ~ Methods
-  // ________________________________________________________________________________________________________________________________________________
-
-  /**
-   * DOCUMENT ME!
-   * 
-   * @param attribute DOCUMENT ME!
-   * @throws IllegalActionException DOCUMENT ME!
-   */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " :" + attribute);
-    }
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == numberOfOutputs) {
       int newOutputCount = ((IntToken) numberOfOutputs.getToken()).intValue();
-      logger.debug("change number of outputs from :  " + outputCount + " to : " + newOutputCount);
+      if (newOutputCount != outputCount) {
+        if (getLogger().isDebugEnabled()) {
+          getLogger().debug("{} change number of outputs from {} to {}", new Object[] {getFullName(), outputCount, newOutputCount});
+        }
 
-      if (outputPorts == null) {
-        logger.debug("Create a new list");
-        outputPorts = new ArrayList(5);
-
-        for (int i = 0; i < newOutputCount; i++) {
-          try {
-            Port outputPort = (Port) getPort("output " + i);
-
-            if (outputPort == null) {
-              outputPort = PortFactory.getInstance().createOutputPort(this, "output " + i);
+        if (outputPorts == null) {
+          outputPorts = new ArrayList<Port>(5);
+          for (int i = 0; i < newOutputCount; i++) {
+            try {
+              Port outputPort = (Port) getPort("output " + i);
+              if (outputPort == null) {
+                outputPort = PortFactory.getInstance().createOutputPort(this, "output " + i);
+              }
+              outputPorts.add(i, outputPort);
+            } catch (NameDuplicationException e) {
+              throw new IllegalActionException(e.toString());
             }
-
-            outputPorts.add(i, outputPort);
-            logger.debug("created output : " + i);
-          } catch (NameDuplicationException e) {
-            throw new IllegalActionException(e.toString());
           }
-        }
-      } else if (newOutputCount < outputCount) {
-        logger.debug("Decrement number of outputs");
-
-        for (int i = outputCount - 1; (i >= 0) && (i >= newOutputCount); i--) {
-          try {
-            ((Port) outputPorts.get(i)).setContainer(null);
-            outputPorts.remove(i);
-            logger.debug("removed output : " + i);
-          } catch (NameDuplicationException e) {
-            throw new IllegalActionException(e.toString());
-          }
-        }
-      } else if (newOutputCount > outputCount) {
-        logger.debug("Increment number of outputs");
-
-        for (int i = outputCount; i < newOutputCount; i++) {
-          try {
-            Port outputPort = (Port) getPort("output " + i);
-
-            if (outputPort == null) {
-              outputPort = PortFactory.getInstance().createOutputPort(this, "output " + i);
+        } else if (newOutputCount < outputCount) {
+          for (int i = outputCount - 1; (i >= 0) && (i >= newOutputCount); i--) {
+            try {
+              ((Port) outputPorts.get(i)).setContainer(null);
+              outputPorts.remove(i);
+            } catch (NameDuplicationException e) {
+              throw new IllegalActionException(e.toString());
             }
-
-            outputPorts.add(i, outputPort);
-            logger.debug("created output : " + i);
-          } catch (NameDuplicationException e) {
-            throw new IllegalActionException(e.toString());
+          }
+        } else if (newOutputCount > outputCount) {
+          for (int i = outputCount; i < newOutputCount; i++) {
+            try {
+              Port outputPort = (Port) getPort("output " + i);
+              if (outputPort == null) {
+                outputPort = PortFactory.getInstance().createOutputPort(this, "output " + i);
+              }
+              outputPorts.add(i, outputPort);
+            } catch (NameDuplicationException e) {
+              throw new IllegalActionException(e.toString());
+            }
           }
         }
-      }
-
-      outputCount = newOutputCount;
-
-      if (selected >= outputCount) {
-        selected = outputCount - 1;
+        outputCount = newOutputCount;
+        if (selected >= outputCount) {
+          selected = outputCount - 1;
+        }
       }
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected void doFire() throws ProcessingException {
     int outNr = 0;
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo());
-    }
-
-    Token token = null;
-
+    ManagedMessage msg = null;
     try {
-      token = MessageHelper.getMessageAsToken(input);
+      msg = MessageHelper.getMessage(input);
     } catch (PasserelleException e) {
-      throw new ProcessingException(getInfo() + " - doFire() generated exception in MessageHelper.getMessageAsToken() " + e, token, e);
+      throw new ProcessingException(ErrorCode.MSG_DELIVERY_FAILURE, "Error getting msg from MessageHelper.getMessageAsToken()", this, e);
     }
-
-    if (token == null) {
+    if (msg == null) {
       requestFinish();
     } else {
       outNr = selected;
-
       if (selected < 0) {
         outNr = 0;
-        logger.debug(getInfo() + " : Selected port = " + selected + ". Using port " + outNr + ".");
       } else if (selected >= outputCount) {
         outNr = outputCount - 1;
-        logger.debug(getInfo() + " : Selected port = " + selected + ". Using port " + outNr + ".");
       }
-
+      getLogger().debug("{} Selected {}  Using port {}", selected, outNr);
       try {
-        ((Port) outputPorts.get(outNr)).broadcast(token);
+        sendOutputMsg((Port) outputPorts.get(outNr), msg);
+        getLogger().trace("{} has sent message on {}" + msg);
       } catch (Exception e) {
-        throw new ProcessingException(getInfo() + " - doFire() generated exception in outputPorts...broadcast() " + e, token, e);
+        throw new ProcessingException(ErrorCode.MSG_DELIVERY_FAILURE, "Error sending output msg", this, msg, e);
       }
-    }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit " + " - Output " + outNr + " has sent message " + token);
     }
   }
 
   protected void doInitialize() throws InitializationException {
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo());
-    }
-
     super.doInitialize();
-
     if (select.getWidth() > 0) {
-      selectHandler = new PortHandler(select, new PortListenerAdapter() {
+      selectHandler = createPortHandler(select, new PortListenerAdapter() {
         public void tokenReceived() {
           Token selectToken = selectHandler.getToken();
-
-          try {
-            ManagedMessage msg = MessageHelper.getMessageFromToken(selectToken);
-            selected = ((Number) msg.getBodyContent()).intValue();
-          } catch (NumberFormatException e) {
-            // Do nothing. selected is unchanged
-          } catch (Exception e) {
-            // Do nothing. selected is unchanged
-            logger.error("", e);
+          if (selectToken != null && !selectToken.isNil()) {
+            try {
+              ManagedMessage msg = MessageHelper.getMessageFromToken(selectToken);
+              selected = ((Number) msg.getBodyContent()).intValue();
+            } catch (NumberFormatException e) {
+              // Do nothing. selected is unchanged
+            } catch (Exception e) {
+              // Do nothing. selected is unchanged
+              getLogger().error("", e);
+            }
+            getLogger().debug("{} Event received : {}", getFullName(), selected);
           }
-
-          logger.debug("Event received : " + selected);
         }
       });
       selectHandler.start();
     }
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - exit ");
-    }
-
-  }
-
-  protected String getExtendedInfo() {
-    return outputCount + " output ports";
   }
 }

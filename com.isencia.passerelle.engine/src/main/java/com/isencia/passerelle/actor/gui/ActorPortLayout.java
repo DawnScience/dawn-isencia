@@ -8,9 +8,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-
 import javax.swing.SwingConstants;
-
 import ptolemy.actor.IOPort;
 import ptolemy.actor.gui.PtolemyPreferences;
 import ptolemy.data.BooleanToken;
@@ -29,7 +27,6 @@ import ptolemy.util.MessageHandler;
 import ptolemy.vergil.toolbox.PortSite;
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.core.ControlPort;
-import com.isencia.passerelle.domain.cap.Director;
 import diva.canvas.CompositeFigure;
 import diva.canvas.Figure;
 import diva.canvas.toolbox.LabelFigure;
@@ -185,7 +182,7 @@ public class ActorPortLayout extends AbstractGlobalLayout {
 			if(port.getContainer() instanceof Actor) {
 				Actor containingActor = (Actor) port.getContainer();
 				try {
-					isExpertMode = ((Director)containingActor.getDirector()).isExpertMode();
+					isExpertMode = containingActor.getDirectorAdapter().isExpertMode();
 				} catch (Exception e) {}
 			}
 			boolean portIsConnected = port.getWidth() > 0;

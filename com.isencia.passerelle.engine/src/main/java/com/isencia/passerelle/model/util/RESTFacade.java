@@ -41,11 +41,13 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.model.ExecutionTraceRecord;
 import com.isencia.passerelle.model.Flow;
 import com.isencia.passerelle.model.FlowHandle;
 import com.isencia.passerelle.model.FlowManager;
+import com.isencia.passerelle.model.FlowNotExecutingException;
 
 
 /**
@@ -57,7 +59,7 @@ import com.isencia.passerelle.model.FlowManager;
  */
 public class RESTFacade {
 
-	private final static Logger logger = LoggerFactory.getLogger(RESTFacade.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(RESTFacade.class);
 
 	private HttpClient httpClient;
 
@@ -65,7 +67,7 @@ public class RESTFacade {
 		httpClient = new HttpClient();
         final String proxyHost = System.getProperty("http.proxyHost");
         final String proxyPort = System.getProperty("http.proxyPort");
-        logger.debug("configure proxy with " + proxyHost + ":" + proxyPort);
+        LOGGER.debug("configure proxy with " + proxyHost + ":" + proxyPort);
         if (proxyHost != null && proxyPort != null && !"".equals(proxyHost)
                 && !"".equals(proxyPort)) {
             httpClient.getHostConfiguration().setProxy(proxyHost, new Integer(proxyPort));
@@ -83,7 +85,7 @@ public class RESTFacade {
 		try {
 			doc = parser.build(new StringReader(jobHeadersResponse));
 		} catch (Exception e) {
-			throw new PasserelleException("Unable to parse response data", jobHeadersResponse, e);
+			throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Unable to parse response data "+jobHeadersResponse, e);
 		}
 		if (doc != null) {
 			List<Element> scheduledJobElements = doc.getRootElement().getChildren("scheduledJob");
@@ -102,7 +104,7 @@ public class RESTFacade {
 					flowHandle.setExecResourceLocation(new URL(execHREF));
 					flowHandles.add(flowHandle);
 				} catch (Exception e) {
-					throw new PasserelleException("Invalid URL " + jobHREF + " in response ", jobHeadersResponse, e);
+					throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Invalid URL " + jobHREF + " in response " + jobHeadersResponse, e);
 				}
 			}
 		}
@@ -127,7 +129,7 @@ public class RESTFacade {
 				flowHandle.setMoml(moml);
 			}
 		} catch (Exception e) {
-			throw new PasserelleException("Unable to parse response data", seqDetail, e);
+			throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Unable to parse response data " + seqDetail, e);
 		}
 
 		return flowHandle;
@@ -141,7 +143,7 @@ public class RESTFacade {
 		try {
 			doc = parser.build(new StringReader(seqHeadersResponse));
 		} catch (Exception e) {
-			throw new PasserelleException("Unable to parse response data", seqHeadersResponse, e);
+			throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Unable to parse response data " + seqHeadersResponse, e);
 		}
 		if (doc != null) {
 			List<Element> seqElements = doc.getRootElement().getChildren("sequence");
@@ -156,7 +158,7 @@ public class RESTFacade {
 					FlowHandle flowHandle = new FlowHandle(new Long(id), name, new URL(href));
 					flowHandles.add(flowHandle);
 				} catch (Exception e) {
-					throw new PasserelleException("Invalid URL " + href + " in response ", seqHeadersResponse, e);
+					throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Invalid URL " + href + " in response " + seqHeadersResponse, e);
 				}
 			}
 		}
@@ -231,7 +233,7 @@ public class RESTFacade {
 			try {
 				doc = parser.build(new StringReader(tracesResponse));
 			} catch (Exception e) {
-				throw new PasserelleException("Unable to parse response data", tracesResponse, e);
+				throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Unable to parse response data " + tracesResponse, e);
 			}
 			if (doc != null) {
 				SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
@@ -263,7 +265,7 @@ public class RESTFacade {
 
 			return traces;
 		} else {
-			throw new PasserelleException("Flow not executing", fHandle, null);
+			throw new FlowNotExecutingException(fHandle.getName());
 		}
 	}
 
@@ -285,20 +287,20 @@ public class RESTFacade {
 			int statusCode = httpClient.executeMethod(method);
 
 			if (statusCode != HttpStatus.SC_OK) {
-				logger.warn("Response status error : " + method.getStatusLine());
+				LOGGER.warn("Response status error : " + method.getStatusLine());
 			}
 
 			String response = method.getResponseBodyAsString();
-			if (logger.isDebugEnabled()) {
-				logger.debug("Received response\n" + response);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Received response\n" + response);
 			}
 
 			return response;
 		} catch (HttpException e) {
-			logger.error("Fatal protocol violation: ", e);
+			LOGGER.error("Fatal protocol violation: ", e);
 			return null;
 		} catch (IOException e) {
-			logger.error("Fatal transport error: ", e);
+			LOGGER.error("Fatal transport error: ", e);
 			return null;
 		} finally {
 			// Release the connection.
@@ -331,7 +333,7 @@ public class RESTFacade {
 		try {
 			doc = parser.build(new StringReader(startInfo));
 		} catch (Exception e) {
-			throw new PasserelleException("Unable to parse response data", startInfo, e);
+			throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Unable to parse response data " + startInfo, e);
 		}
 		if (doc != null) {
 			Element scheduledJobElement = doc.getRootElement().getChild("scheduledJob");
@@ -342,7 +344,7 @@ public class RESTFacade {
 			try {
 				fHandle.setExecResourceLocation(new URL(execHREF));
 			} catch (Exception e) {
-				throw new PasserelleException("Invalid URL " + execHREF + " in response ", startInfo, e);
+				throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Invalid URL " + execHREF + " in response " + startInfo, e);
 			}
 		}
 		return fHandle;
@@ -379,7 +381,7 @@ public class RESTFacade {
 	 */
 	public FlowHandle updateRemoteFlow(Flow flow) throws PasserelleException {
 		if (!flow.getHandle().isRemote()) {
-			throw new PasserelleException("Trying to remotely update a local flow", flow, null);
+			throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Trying to remotely update a local flow", flow, null);
 		} else {
 			String updateURL = flow.getHandle().getAuthorativeResourceLocation().toString() + "/update";
 			PostMethod updateMethod = new PostMethod(updateURL);
@@ -391,9 +393,9 @@ public class RESTFacade {
 				FlowHandle updatedFlowHandle = buildFlowHandle(seqDetailResponse);
 				return updatedFlowHandle;
 			} catch (UnsupportedEncodingException e) {
-				throw new PasserelleException("Transport error related to UTF-8 encoding", flow, e);
+				throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Transport error related to UTF-8 encoding", flow, e);
 			} catch (IOException e) {
-				throw new PasserelleException("Error writing flow moml", flow, e);
+				throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Error writing flow moml", flow, e);
 			}
 		}
 	}

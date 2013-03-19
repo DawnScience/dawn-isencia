@@ -41,16 +41,20 @@ import ptolemy.actor.Manager.State;
 import ptolemy.data.expr.Parameter;
 import ptolemy.kernel.Entity;
 import ptolemy.kernel.util.IllegalActionException;
+import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.Manager;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.domain.ProcessThread;
 import com.isencia.passerelle.domain.cap.Director;
 import com.isencia.passerelle.engine.activator.Activator;
+import com.isencia.passerelle.ext.DirectorAdapter;
 import com.isencia.passerelle.ext.ErrorCollector;
 import com.isencia.passerelle.ext.ExecutionControlStrategy;
 import com.isencia.passerelle.ext.impl.SuspendResumeExecutionControlStrategy;
 import com.isencia.passerelle.model.util.MoMLParser;
 import com.isencia.passerelle.model.util.RESTFacade;
+import com.isencia.passerelle.validation.version.VersionSpecification;
 
 
 
@@ -78,13 +82,24 @@ import com.isencia.passerelle.model.util.RESTFacade;
  */
 public class FlowManager {
 
+  private static FlowManager defaultFlowManager;
+
+  public static FlowManager getDefault() {
+    if (defaultFlowManager == null) {
+      defaultFlowManager = new FlowManager();
+    }
+    return defaultFlowManager;
+  }
+  
 	protected class ModelExecutionListener implements ExecutionListener, ErrorCollector {
 		private Throwable throwable;
 
 		private final Flow flow;
+		private ExecutionListener[] delegateListeners;
 
-		ModelExecutionListener(final Flow flow) {
+		ModelExecutionListener(final Flow flow, ExecutionListener... delegateListeners) {
 			this.flow = flow;
+			this.delegateListeners = delegateListeners;
 		}
 
 		public void acceptError(final PasserelleException e) {
@@ -94,9 +109,21 @@ public class FlowManager {
 		public void executionError(ptolemy.actor.Manager manager, final Throwable throwable) {
 			this.throwable = throwable;
 			logger.error("Error during model execution", throwable);
+			if(delegateListeners!=null) {
+			  for (ExecutionListener delegateListener : delegateListeners) {
+			    if(delegateListener!=null)
+			      delegateListener.executionError(manager, throwable);
+        }
+			}
 		}
 
 		public void executionFinished(final ptolemy.actor.Manager manager) {
+      if(delegateListeners!=null) {
+        for (ExecutionListener delegateListener : delegateListeners) {
+          if(delegateListener!=null)
+            delegateListener.executionFinished(manager);
+        }
+      }
 			FlowManager.this.executionFinished(flow);
 		}
 
@@ -115,7 +142,12 @@ public class FlowManager {
 		}
 
 		public void managerStateChanged(ptolemy.actor.Manager manager) {
-			//System.out.println("manager state changed to "+manager.getState());
+      if(delegateListeners!=null) {
+        for (ExecutionListener delegateListener : delegateListeners) {
+          if(delegateListener!=null)
+            delegateListener.managerStateChanged(manager);
+        }
+      }
 		}
 
 		public void otherExceptionOccured() throws Throwable {
@@ -193,7 +225,7 @@ public class FlowManager {
 									p.setExpression(propValue);
 									p.setPersistent(true);
 								} else {
-									throw new PasserelleException("Inconsistent Parameters", flow, null);
+									throw new PasserelleException(ErrorCode.FLOW_CONFIGURATION_ERROR, "Inconsistent parameter definition "+propName, flow, null);
 								}
 							}
 						} catch (IllegalActionException e1) {
@@ -274,12 +306,12 @@ public class FlowManager {
 					};
 					File[] fileList = dir.listFiles(filter);
 					for (File file : fileList) {
-						FlowHandle flowHandle = new FlowHandle(null, file.getName(), file.toURL());
+						FlowHandle flowHandle = new FlowHandle(null, file.getName(), file.toURI().toURL());
 						results.add(flowHandle);
 					}
 				}
 			} catch (Exception e) {
-				throw new PasserelleException("Error reading flows from " + baseResourceLocation, null, e);
+				throw new PasserelleException(ErrorCode.FLOW_LOADING_ERROR, "Error reading flows from " + baseResourceLocation, null, e);
 			}
 		}
 		return results != null ? results : new ArrayList<FlowHandle>();
@@ -344,12 +376,56 @@ public class FlowManager {
 	 * @throws Exception
 	 */
 	public static Flow readMoml(Reader in, ClassLoader classLoader) throws Exception {
-		final MoMLParser parser = new MoMLParser(null, classLoader);
-		final Flow toplevel = (Flow) parser.parse(null, in);
-		final FlowHandle handle = new FlowHandle(0L, toplevel.getFullName(), null);
-		toplevel.setHandle(handle);
-		return toplevel;
+		return readMoml(in, null, classLoader);
 	}
+
+	/**
+   * Read the Flow in MOML format from the given Reader, with given default version specification 
+   * and using the given ClassLoader to instantiate actors etc.
+   * <p>
+   * The version specification will be used as default for all version-aware model elements,
+   * when the model itself does not contain an explicit version specification for an element.
+   * </p>
+   * <p>
+   * This is typically useful for code/tag version specs to allow an easy version-aware model parsing
+   * where all elements should consistently be loaded with a same tag.
+   * </p>
+	 * 
+	 * @param in
+	 * @param versionSpec
+	 * @param classLoader
+	 * @return
+	 * @throws Exception
+	 */
+  public static Flow readMoml(Reader in, VersionSpecification versionSpec, ClassLoader classLoader) throws Exception {
+    return readMoml(in, null, versionSpec, classLoader);
+  }
+
+  /**
+   * 
+   * Read the Flow in MOML format from the given Reader, with given default version specification 
+   * and using the given ClassLoader to instantiate actors etc.
+   * <p>
+   * The version specification will be used as default for all version-aware model elements,
+   * when the model itself does not contain an explicit version specification for an element.
+   * </p>
+   * <p>
+   * This is typically useful for code/tag version specs to allow an easy version-aware model parsing
+   * where all elements should consistently be loaded with a same tag.
+   * </p>
+   * 
+   * @param in
+   * @param workspace
+   * @param versionSpec
+   * @param classLoader
+   * @return
+   * @throws Exception
+   */
+  public static Flow readMoml(Reader in, Workspace workspace, VersionSpecification versionSpec, ClassLoader classLoader) throws Exception {
+    final MoMLParser parser = new MoMLParser(workspace, versionSpec, classLoader);
+    final Flow toplevel = (Flow) parser.parse(null, in);
+    return toplevel;
+  }
 
 	/**
 	 * Read the Flow in MOML format from the given URL.
@@ -370,38 +446,82 @@ public class FlowManager {
 	}
 
 	/**
-	 * Read the Flow in MOML format from the given URL.
+   * Read the Flow in MOML format from the given URL.
 	 * 
-	 * @param in
-	 * @return the resulting flow
+	 * @param xmlFile
+	 * @param classLoader
+	 * @return
 	 * @throws Exception
 	 */
 	public static Flow readMoml(URL xmlFile, ClassLoader classLoader) throws Exception {
-		if (xmlFile == null)
-			return null;
-
-		String protocol = xmlFile.getProtocol();
-		if ("file".equals(protocol) || "jar".equals(protocol) || "bundleresource".equals(protocol)) {
-			// it's a local moml
-			MoMLParser parser = new MoMLParser(null, classLoader);
-			MoMLParser.purgeModelRecord(xmlFile);
-			Flow toplevel = (Flow) parser.parse(null, xmlFile);
-			final FlowHandle handle = new FlowHandle(0L, toplevel.getFullName(), xmlFile);
-			toplevel.setHandle(handle);
-			return toplevel;
-		} else if ("http".equals(protocol) || "https".equals(protocol)) {
-			// it's probably/hopefully a REST url pointing towards a Passerelle
-			// Manager
-			if (restFacade == null) {
-				initRESTFacade();
-			}
-
-			FlowHandle flowHandle = restFacade.getRemoteFlowHandle(xmlFile);
-			return buildFlowFromHandle(flowHandle);
-		} else {
-			throw new IllegalArgumentException("Unsupported URL protocol " + protocol);
-		}
+		return readMoml(xmlFile, null, classLoader);
 	}
+
+  /**
+   * Read the Flow in MOML format from the given URL, with given default version specification 
+   * and using the given ClassLoader to instantiate actors etc.
+   * <p>
+   * The version specification will be used as default for all version-aware model elements,
+   * when the model itself does not contain an explicit version specification for an element.
+   * </p>
+   * <p>
+   * This is typically useful for code/tag version specs to allow an easy version-aware model parsing
+   * where all elements should consistently be loaded with a same tag.
+   * </p>
+   * 
+   * @param xmlFile
+   * @param versionSpec
+   * @param classLoader
+   * @return
+   * @throws Exception
+   */
+  public static Flow readMoml(URL xmlFile, VersionSpecification versionSpec, ClassLoader classLoader) throws Exception {
+    return readMoml(xmlFile, null, versionSpec, classLoader);
+  }
+  
+	/**
+   * Read the Flow in MOML format from the given URL, with given default version specification 
+   * and using the given ClassLoader to instantiate actors etc.
+   * <p>
+   * The version specification will be used as default for all version-aware model elements,
+   * when the model itself does not contain an explicit version specification for an element.
+   * </p>
+   * <p>
+   * This is typically useful for code/tag version specs to allow an easy version-aware model parsing
+   * where all elements should consistently be loaded with a same tag.
+   * </p>
+   * 
+	 * @param xmlFile
+	 * @param versionSpec
+	 * @param workspace
+	 * @param classLoader
+	 * @return
+	 * @throws Exception
+	 */
+  public static Flow readMoml(URL xmlFile, Workspace workspace, VersionSpecification versionSpec, ClassLoader classLoader) throws Exception {
+    if (xmlFile == null)
+      return null;
+
+    String protocol = xmlFile.getProtocol();
+    if ("file".equals(protocol) || "jar".equals(protocol) || "bundleresource".equals(protocol)) {
+      // it's a local moml
+      MoMLParser parser = new MoMLParser(workspace, versionSpec, classLoader);
+      MoMLParser.purgeModelRecord(xmlFile);
+      Flow toplevel = (Flow) parser.parse(null, xmlFile);
+      final FlowHandle handle = new FlowHandle(0L, toplevel.getFullName(), xmlFile);
+      toplevel.setHandle(handle);
+      return toplevel;
+    } else if ("http".equals(protocol) || "https".equals(protocol)) {
+      // it's probably/hopefully a REST url pointing towards a Passerelle Manager
+      if (restFacade == null) {
+        initRESTFacade();
+      }
+      FlowHandle flowHandle = restFacade.getRemoteFlowHandle(xmlFile);
+      return buildFlowFromHandle(flowHandle);
+    } else {
+      throw new IllegalArgumentException("Unsupported URL protocol " + protocol);
+    }
+  }
 
 	/**
 	 * For locally managed flows, saves the flow's moml on the given URL (which
@@ -494,7 +614,7 @@ public class FlowManager {
 	public void executeBlockingErrorLocally(Flow flow, Map<String, String> props) throws FlowAlreadyExecutingException, PasserelleException {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		checkFlowAlreadyExecuting(flow);
 		if (props != null) {
@@ -506,15 +626,17 @@ public class FlowManager {
 			Manager manager = new Manager(flow.workspace(), flow.getName());
 			flow.setManager(manager);
 			flowExecutions.put(handle, manager);
-			com.isencia.passerelle.domain.cap.Director dir = (com.isencia.passerelle.domain.cap.Director) flow.getDirector();
-			dir.removeAllErrorCollectors();
-			dir.addErrorCollector(executionListener);
+			DirectorAdapter dirAdapter = flow.getDirectorAdapter();
+			dirAdapter.removeAllErrorCollectors();
+			dirAdapter.addErrorCollector(executionListener);
 			manager.addExecutionListener(executionListener);
 			manager.execute();
-		} catch (IllegalActionException e) {
-			throw new FlowAlreadyExecutingException("", flow, e);
-		} catch (Exception e) {
-			throw new PasserelleException("Error executing flow", flow, e);
+    } catch (Exception e) {
+      if(e.getCause() instanceof PasserelleException) {
+        throw ((PasserelleException)e.getCause());
+      } else {
+        throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
+      }
 		} finally {
 			executionFinished(flow);
 		}
@@ -522,14 +644,14 @@ public class FlowManager {
 		try {
 			executionListener.illegalActionExceptionOccured();
 		} catch (IllegalActionException e) {
-			throw new PasserelleException("Execution Error", flow, e);
+			throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
 		}
 		executionListener.passerelleExceptionOccured();
 
 		try {
 			executionListener.otherExceptionOccured();
-		} catch (Throwable e) {
-			throw new PasserelleException("UNKNOWN Execution Error", flow, e);
+		} catch (Throwable e) { // NOSONAR - need to make sure any problem is wrapped in a PasserelleException
+      throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
 		}
 	}
 
@@ -559,8 +681,10 @@ public class FlowManager {
 	public void executeBlockingLocally(Flow flow, Map<String, String> props) throws FlowAlreadyExecutingException, PasserelleException {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
+    // should not be necessary, a flow's handle already knows about it's flow
+    //handle.setLocalFlow(flow);
 		checkFlowAlreadyExecuting(flow);
 		if (props != null) {
 			applyParameterSettings(flow, props);
@@ -570,10 +694,12 @@ public class FlowManager {
 			flow.setManager(manager);
 			flowExecutions.put(handle, manager);
 			manager.execute();
-		} catch (IllegalActionException e) {
-			throw new FlowAlreadyExecutingException("", flow, e);
 		} catch (Exception e) {
-			throw new PasserelleException("Error executing flow", flow, e);
+      if(e.getCause() instanceof PasserelleException) {
+        throw ((PasserelleException)e.getCause());
+      } else {
+        throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
+      }
 		} finally {
 			executionFinished(flow);
 		}
@@ -606,7 +732,7 @@ public class FlowManager {
 	public void executeBlockingLocally(Flow flow, Map<String, String> props, ExecutionListener listener) throws FlowAlreadyExecutingException, PasserelleException {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+			throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		checkFlowAlreadyExecuting(flow);
 		if (props != null) {
@@ -619,7 +745,11 @@ public class FlowManager {
 			manager.addExecutionListener(listener);
 			manager.run();
 		} catch (Exception e) {
-			throw new PasserelleException("Error executing flow", flow, e);
+      if(e.getCause() instanceof PasserelleException) {
+        throw ((PasserelleException)e.getCause());
+      } else {
+        throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
+      }
 		} finally {
 			executionFinished(flow);
 		}
@@ -639,56 +769,35 @@ public class FlowManager {
 	 * 
 	 * @param flow
 	 * @param props
+	 * @param executionListeners
 	 * @throws PasserelleException
 	 */
-	private void executeLocally(Flow flow, Map<String, String> props) throws PasserelleException {
-		FlowHandle handle = flow.getHandle();
-		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
-		}
-		checkFlowAlreadyExecuting(flow);
-		if (props != null) {
-			applyParameterSettings(flow, props);
-		}
-		try {
-			ModelExecutionListener listener = this.new ModelExecutionListener(flow);
-			flowExecutionListeners.put(handle, listener);
-			final Manager manager = new Manager(flow.workspace(), flow.getName());
-			manager.addExecutionListener(listener);
-			
-			flow.setManager(manager);
-			flowExecutions.put(handle, manager);
-			manager.startRun();
-		} catch (IllegalActionException e) {
-			throw new FlowAlreadyExecutingException("", flow, e);
-		}
-
-	}
-
-	private void executeLocally(final Flow flow, final Map<String, String> props, final ExecutionListener executionListener)
+	private void executeLocally(final Flow flow, final Map<String, String> props, final ExecutionListener... executionListeners)
 			throws FlowAlreadyExecutingException, PasserelleException {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		checkFlowAlreadyExecuting(flow);
 		if (props != null) {
 			applyParameterSettings(flow, props);
 		}
 		try {
-			ModelExecutionListener listener = this.new ModelExecutionListener(flow);
+			ModelExecutionListener listener = this.new ModelExecutionListener(flow, executionListeners);
 			flowExecutionListeners.put(handle, listener);
 			final Manager manager = new Manager(flow.workspace(), flow.getName());
 			manager.addExecutionListener(listener);
-			manager.addExecutionListener(executionListener);
 
 			flow.setManager(manager);
 			flowExecutions.put(handle, manager);
 			manager.startRun();
-		} catch (final IllegalActionException e) {
-			throw new FlowAlreadyExecutingException("", flow, e);
+    } catch (Exception e) {
+      if(e.getCause() instanceof PasserelleException) {
+        throw ((PasserelleException)e.getCause());
+      } else {
+        throw new PasserelleException(ErrorCode.FLOW_EXECUTION_ERROR, flow, e);
+      }
 		}
-
 	}
 
 	/**
@@ -704,7 +813,7 @@ public class FlowManager {
 				// so do the corresponding cleanup here
 				executionFinished(flow);
 			} else {
-				throw new FlowAlreadyExecutingException("", flow, null);
+				throw new FlowAlreadyExecutingException(flow);
 			}
 		}
 	}
@@ -747,7 +856,7 @@ public class FlowManager {
 			initRESTFacade();
 		}
 		if (remoteFlowExecutionsList.contains(flow)) {
-			throw new FlowAlreadyExecutingException("", flow, null);
+			throw new FlowAlreadyExecutingException(flow);
 		}
 
 		FlowHandle flowHandle = flow.getHandle();
@@ -812,7 +921,7 @@ public class FlowManager {
 		}
 		Manager mgr = flowExecutions.get(flow.getHandle());
 		if (mgr == null) {
-			throw new FlowNotExecutingException("", flow, null);
+			throw new FlowNotExecutingException(flow);
 		}
 
 		return mgr.getState();
@@ -856,16 +965,15 @@ public class FlowManager {
 		
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		if (handle.isRemote()) {
 			if (!remoteFlowExecutionsList.contains(flow)) {
-				throw new FlowNotExecutingException("", flow, null);
+	      throw new FlowNotExecutingException(flow);
 			}
 			if (restFacade == null) {
 				initRESTFacade();
 			}
-
 			FlowHandle stoppedRemoteFlowHandle = restFacade.stopFlowRemotely(handle);
 			// rely on indirect removal via trace polling in HMI
 			// remoteFlowExecutionsList.remove(flow);
@@ -873,7 +981,7 @@ public class FlowManager {
 		} else {
 			Manager mgr = flowExecutions.get(handle);
 			if (mgr == null) {
-				throw new FlowNotExecutingException("", flow, null);
+	      throw new FlowNotExecutingException(flow);
 			}
 			mgr.stop();
 			// wait for stop completion
@@ -907,14 +1015,14 @@ public class FlowManager {
 	public synchronized Flow pauseExecution(Flow flow) throws IllegalStateException, IllegalArgumentException, PasserelleException, Exception {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		if (handle.isRemote()) {
 			throw new IllegalArgumentException("Suspend not yet supported for remote execution");
 		} else {
 			Manager mgr = flowExecutions.get(handle);
 			if (mgr == null) {
-				throw new FlowNotExecutingException("Flow is not executing", flow, null);
+	      throw new FlowNotExecutingException(flow);
 			} else {
 				mgr.pause();
 				
@@ -950,19 +1058,19 @@ public class FlowManager {
 	public synchronized Flow resumeExecution(Flow flow) throws IllegalStateException, IllegalArgumentException, PasserelleException, Exception {
 		FlowHandle handle = flow.getHandle();
 		if(handle==null) {
-			throw new PasserelleException("Invalid flow : missing FlowHandle", flow, null);
+      throw new PasserelleException(ErrorCode.FLOW_STATE_ERROR, "Invalid flow : missing FlowHandle", flow, null);
 		}
 		if (handle.isRemote()) {
 			throw new IllegalArgumentException("Flow is not managed locally");
 		} else {
 			Manager mgr = flowExecutions.get(handle);
 			if (mgr == null) {
-				throw new FlowNotExecutingException("Flow is not executing", flow, null);
+	      throw new FlowNotExecutingException(flow);
 			}
 			mgr.resume();
 
 			try {
-				ExecutionControlStrategy execCtrlStrategy = ((Director)flow.getDirector()).getExecutionControlStrategy();
+				ExecutionControlStrategy execCtrlStrategy = flow.getDirectorAdapter().getExecutionControlStrategy();
 				if(execCtrlStrategy instanceof SuspendResumeExecutionControlStrategy) {
 					((SuspendResumeExecutionControlStrategy) execCtrlStrategy).resume();
 				}

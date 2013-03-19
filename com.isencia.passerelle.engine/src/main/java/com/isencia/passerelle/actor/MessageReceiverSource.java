@@ -11,132 +11,104 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-*/
+ */
 package com.isencia.passerelle.actor;
 
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.message.IMessageReceiver;
 import com.isencia.message.IReceiverChannel;
 import com.isencia.message.interceptor.IMessageInterceptorChain;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
-
 /**
- * @version 1.0
- * @author edeley
+ * @author erwin
  */
 public abstract class MessageReceiverSource extends Source {
-    //~ Instance/static variables ..............................................................................................................................
 
-    private static Logger logger = LoggerFactory.getLogger(MessageReceiverSource.class);
-    private IMessageReceiver messageReceiver = null;
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(MessageReceiverSource.class);
+  private IMessageReceiver messageReceiver = null;
 
-    //~ Constructors ...........................................................................................................................................
+  /**
+   * Creates a new MessageReceiverSource object.
+   * 
+   * @param container
+   * @param name
+   * @throws NameDuplicationException
+   * @throws IllegalActionException
+   */
+  public MessageReceiverSource(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
+    super(container, name);
+  }
 
-    /**
-     * Creates a new MessageReceiverSource object.
-     * 
-     * @param container
-     * @param name
-     * @throws NameDuplicationException
-     * @throws IllegalActionException
-     */
-    public MessageReceiverSource(CompositeEntity container, String name)
-                          throws NameDuplicationException, IllegalActionException {
-        super(container, name);
-    }
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
+  /**
+   * Returns the messageReceiver.
+   * 
+   * @return IMessageReceiver
+   */
+  public IMessageReceiver getMessageReceiver() {
+    return messageReceiver;
+  }
 
-    //~ Methods ................................................................................................................................................
-
-    /**
-     * Returns the messageReceiver.
-     * @return IMessageReceiver
-     */
-    public IMessageReceiver getMessageReceiver() {
-        return messageReceiver;
-    }
-
-    protected void doInitialize() throws InitializationException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
-
-        super.doInitialize();
-        messageReceiver = createMessageReceiver();
-        if (messageReceiver == null) {
-            throw new InitializationException(PasserelleException.Severity.FATAL,"MessageReceiver for " + getInfo() + " not created correctly.",this,null);
-        } else {
-            IMessageInterceptorChain interceptors = createInterceptorChainOnLeave();
-            Collection channels = messageReceiver.getChannels();
-            synchronized (channels) {
-                Iterator iter = channels.iterator();
-                while (iter.hasNext()) {
-                    IReceiverChannel element = (IReceiverChannel)iter.next();
-                    element.setInterceptorChainOnLeave(interceptors);
-                }
-            }
-
-            messageReceiver.open();
-			if(logger.isInfoEnabled()) {
-				logger.info(getInfo()+" - Opened :"+getMessageReceiver());
-			}
+  protected void doInitialize() throws InitializationException {
+    super.doInitialize();
+    messageReceiver = createMessageReceiver();
+    if (messageReceiver == null) {
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "MessageReceiver not created correctly.", this, null);
+    } else {
+      IMessageInterceptorChain interceptors = createInterceptorChainOnLeave();
+      Collection<IReceiverChannel> channels = messageReceiver.getChannels();
+      synchronized (channels) {
+        Iterator<IReceiverChannel> iter = channels.iterator();
+        while (iter.hasNext()) {
+          IReceiverChannel element = iter.next();
+          element.setInterceptorChainOnLeave(interceptors);
         }
-
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit ");
+      }
+      messageReceiver.open();
+      getLogger().debug("{} - Opened : {}", getFullName(), getMessageReceiver());
     }
+  }
 
-    protected void doWrapUp() throws TerminationException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
+  protected void doWrapUp() throws TerminationException {
+    super.doWrapUp();
+    getMessageReceiver().close();
+    getLogger().debug("{} - Closed : {}", getFullName(), getMessageReceiver());
+  }
 
-        super.doWrapUp();
-        getMessageReceiver().close();
-		if(logger.isInfoEnabled()) {
-			logger.info(getInfo()+" - Closed :"+getMessageReceiver());
-		}
-		
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit ");
+  /**
+   * @return a chain of interceptors that are invoked when the msg leaves the message receiver
+   */
+  protected abstract IMessageInterceptorChain createInterceptorChainOnLeave();
+
+  /**
+   * @return the concrete message receiver encapsulated in this actor
+   */
+  protected abstract IMessageReceiver createMessageReceiver();
+
+  protected ManagedMessage getMessage() throws ProcessingException {
+    getLogger().trace("{} getMessage() - entry",getFullName());
+
+    ManagedMessage res = null;
+    try {
+      if (messageReceiver != null)
+        res = (ManagedMessage) messageReceiver.getMessage();
+    } catch (Exception e) {
+      throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error getting message from messageReceiver", this, e);
     }
-
-    /**
-     * DOCUMENT ME !
-     * 
-     * @return  
-     */
-    protected abstract IMessageInterceptorChain createInterceptorChainOnLeave();
-
-    /**
-     * DOCUMENT ME !
-     * 
-     * @return  
-     */
-    protected abstract IMessageReceiver createMessageReceiver();
-
-    protected ManagedMessage getMessage() throws ProcessingException {
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo());
-
-        ManagedMessage res = null;
-        try {
-            if (messageReceiver != null)
-                res = (ManagedMessage)messageReceiver.getMessage();
-        } catch (Exception e) {
-            throw new ProcessingException(getInfo() + " - getMessage() generated an exception in messageReceiver.getMessage() :"+e,res,e);
-        }
-
-        if (logger.isTraceEnabled())
-            logger.trace(getInfo()+" - exit " + " - Received :" + res);
-
-        return res;
-    }
+    getLogger().trace("{} getMessage() - exit",getFullName());
+    return res;
+  }
 }

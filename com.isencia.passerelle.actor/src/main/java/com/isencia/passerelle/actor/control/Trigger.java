@@ -33,7 +33,8 @@ import com.isencia.passerelle.message.ManagedMessage;
 
 public class Trigger extends Source {
 
-  private static Logger logger = LoggerFactory.getLogger(Trigger.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(Trigger.class);
   private boolean messageSent = false;
 
   public Trigger(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
@@ -56,20 +57,19 @@ public class Trigger extends Source {
         + "<line x1=\"-5\" y1=\"6\" x2=\"13\" y2=\"6\" " + "style=\"stroke-width:1.0\"/>\n" + "</svg>\n");
   }
 
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+  
   protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     messageSent = false;
     super.doInitialize();
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
 
   protected ManagedMessage getMessage() throws ProcessingException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
-    if (messageSent) return null;
+    if (messageSent)
+      return null;
 
     ManagedMessage dataMsg = null;
     try {
@@ -77,18 +77,10 @@ public class Trigger extends Source {
     } finally {
       messageSent = true;
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit " + " : " + dataMsg);
-
     return dataMsg;
   }
 
-  protected String getAuditTrailMessage(ManagedMessage message, Port port) throws Exception {
+  protected String getAuditTrailMessage(ManagedMessage message, Port port) {
     return "generated trigger.";
   }
-
-  protected String getExtendedInfo() {
-    return "";
-  }
-
 }

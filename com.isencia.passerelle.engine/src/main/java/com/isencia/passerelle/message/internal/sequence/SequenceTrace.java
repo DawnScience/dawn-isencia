@@ -33,8 +33,8 @@ public class SequenceTrace implements Traceable {
 	private Long sequenceID;
 	private Boolean handled=null;
 	private Boolean complete=null;
-	private Map messageTraces = new HashMap();
-	private Map messagesBySeqPos = new TreeMap();
+	private Map<Long, MessageTrace> messageTraces = new HashMap<Long, MessageTrace>();
+	private Map<Long, ManagedMessage> messagesBySeqPos = new TreeMap<Long, ManagedMessage>();
 
 	/**
 	 * @throws IllegalArgumentException if the sequenceID is null
@@ -55,7 +55,7 @@ public class SequenceTrace implements Traceable {
 		long expectedPos = 0;
 		ManagedMessage seqMsg = null;
 		MessageTrace seqMsgTrc = null;
-		for (Iterator iter = messagesBySeqPos.values().iterator(); iter.hasNext(); expectedPos++) {
+		for (Iterator<ManagedMessage> iter = messagesBySeqPos.values().iterator(); iter.hasNext(); expectedPos++) {
 			seqMsg = (ManagedMessage) iter.next();
 			seqMsgTrc = (MessageTrace) messageTraces.get(seqMsg.getID());
 			if(seqMsgTrc==null || !seqMsgTrc.isHandled() || (seqMsg.getSequencePosition()==null) || (seqMsg.getSequencePosition().longValue()!=expectedPos)) {
@@ -89,7 +89,7 @@ public class SequenceTrace implements Traceable {
 		
 		long expectedPos = 0;
 		ManagedMessage seqMsg = null;
-		for (Iterator iter = messagesBySeqPos.values().iterator(); iter.hasNext(); expectedPos++) {
+		for (Iterator<ManagedMessage> iter = messagesBySeqPos.values().iterator(); iter.hasNext(); expectedPos++) {
 			seqMsg = (ManagedMessage) iter.next();
 			if((seqMsg.getSequencePosition()==null) || (seqMsg.getSequencePosition().longValue()!=expectedPos)) {
 				result=false;
@@ -148,11 +148,9 @@ public class SequenceTrace implements Traceable {
 			throw new IllegalArgumentException("Message "+message.getID()+" with seqID "+message.getSequenceID()+
 					"does not belong in sequence "+sequenceID);
 		}
-		
-		if(handled!=null && handled.booleanValue())
+		if(Boolean.TRUE.equals(handled)) {
 			throw new IllegalStateException("sequence "+sequenceID+" already handled completely");
-		
-		
+		}
 		MessageTrace msgTrace = (MessageTrace) messageTraces.get(message.getID());
 		if(msgTrace!=null) {
 			msgTrace.setHandled();

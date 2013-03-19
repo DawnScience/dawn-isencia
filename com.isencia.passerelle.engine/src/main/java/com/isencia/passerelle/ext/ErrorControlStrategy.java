@@ -23,7 +23,7 @@ import com.isencia.passerelle.actor.ValidationException;
 import ptolemy.kernel.util.IllegalActionException;
 
 /**
- * A Passerelle can have at most 1 ErrorControlStrategy. 
+ * A Passerelle actor can have at most 1 ErrorControlStrategy. 
  * This one can determine what must be done in case of an exception
  * during a model execution.
  * <br>

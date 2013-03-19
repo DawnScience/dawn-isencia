@@ -43,26 +43,17 @@ import com.isencia.passerelle.message.interceptor.XMLToMessageConverter;
 import com.isencia.passerelle.util.EnvironmentUtils;
 import com.isencia.util.StringConvertor;
 
-//////////////////////////////////////////////////////////////////////////
-//// FileReader
 /**
  * This actor reads tokens from a file and sends them out.
  */
 public class FileReader extends TriggeredChannelSource {
-
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
   private static class InputType {
-
     public final static InputType TEXT_LINES = new InputType("text-lines", "text/plain", new TextLineMessageExtractor(), new TextToMessageConverter(null)),
         TEXT_FILE = new InputType("text-file", "text/plain", new EndOfMsgCharMsgExtractor(), new TextToMessageConverter(null)), XML_DOC = new InputType(
             "xml-doc", "text/xml", new XmlMessageExtractor(), new XMLToMessageConverter(null));
-
     public final static InputType[] choices = new InputType[] { TEXT_LINES, TEXT_FILE, XML_DOC };
-
     public static InputType getInputTypeForLabel(String label) {
       InputType res = null;
       for (int i = 0; i < choices.length; i++) {
@@ -104,7 +95,7 @@ public class FileReader extends TriggeredChannelSource {
     }
   }
 
-  private static Logger logger = LoggerFactory.getLogger(FileReader.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(FileReader.class);
 
   public final static String PATH_PARAM = "Path";
   public final static String INPUTTYPE_PARAM = "Input Type";
@@ -116,8 +107,6 @@ public class FileReader extends TriggeredChannelSource {
   public FileParameter sourcePathParam = null;
   public Parameter inputTypeParam = null;
   public Parameter fileEncodingParam = null;
-
-  // private IMessageInterceptorChain interceptorsOnLeave = null;
 
   /**
    * Construct an actor with the given container and name.
@@ -150,25 +139,29 @@ public class FileReader extends TriggeredChannelSource {
     }
     registerConfigurableParameter(inputTypeParam);
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   /**
    * @param attribute The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == fileEncodingParam) {
       try {
         setFileEncoding(fileEncodingParam.getExpression());
-        logger.debug("fileEncoding changed to : " + getFileEncoding());
+        getLogger().debug("{} File Encoding changed to {}", getFullName(), getFileEncoding());
       } catch (NullPointerException e) {
         // Ignore. Means that path is not a valid URL.
       }
     } else if (attribute == sourcePathParam) {
       try {
         setSourcePath(sourcePathParam.asFile().getPath());
-        logger.debug("Source Path changed to : " + getSourcePath());
+        getLogger().debug("{} Source Path changed to {}", getFullName(), getSourcePath());
         // set file path as extra header for all generated messages
         getStandardMessageHeaders().put(ManagedMessage.SystemHeader.HEADER_SOURCE_INFO, getSourcePath());
       } catch (NullPointerException e) {
@@ -181,21 +174,17 @@ public class FileReader extends TriggeredChannelSource {
         InputType newInputType = InputType.getInputTypeForLabel(inputTypeChoice);
         if (newInputType != null) {
           setInputType(newInputType);
-          logger.debug("Mime Type changed to : " + getInputType());
+          getLogger().debug("{} Mime Type changed to {}", getFullName(), getInputType());
         } else {
           inputTypeParam.setExpression(prevInputType);
         }
       } catch (Exception e) {
         inputTypeParam.setExpression(prevInputType);
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-  }
-
-  protected String getExtendedInfo() {
-    return getSourcePath();
+    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   /**
@@ -208,8 +197,6 @@ public class FileReader extends TriggeredChannelSource {
   }
 
   protected boolean doPreFire() throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     boolean res = true;
     if (!getChannel().isOpen()) {
       if (getSourcePath() == null || getSourcePath().length() == 0) {
@@ -217,12 +204,7 @@ public class FileReader extends TriggeredChannelSource {
         res = false;
       }
     }
-
-    if (res) res = super.doPreFire();
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit " + " :" + res);
-
-    return res;
+    return res && super.doPreFire();
   }
 
   protected String getFileEncoding() {

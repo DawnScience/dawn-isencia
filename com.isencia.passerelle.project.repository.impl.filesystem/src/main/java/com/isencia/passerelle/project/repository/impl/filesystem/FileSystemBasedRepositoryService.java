@@ -91,7 +91,8 @@ public class FileSystemBasedRepositoryService implements RepositoryService {
   }
 
   /**
-   * @param submodelFolder the submodelFolder to set
+   * @param submodelFolder
+   *          the submodelFolder to set
    */
   public void setSubmodelFolder(File submodelFolder) {
     this.submodelFolder = submodelFolder;
@@ -294,6 +295,10 @@ public class FileSystemBasedRepositoryService implements RepositoryService {
 
   public List<IEventLog> getLogs(String name, Integer maxResult) {
     return new ArrayList<IEventLog>();
+  }
+
+  public boolean existNewSubModel(String flowCode) {
+    return true;
   }
 
 }

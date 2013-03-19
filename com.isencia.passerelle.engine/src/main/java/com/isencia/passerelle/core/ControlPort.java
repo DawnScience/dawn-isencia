@@ -20,12 +20,11 @@ import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.StringAttribute;
 
 /**
- * ControlPort
- * 
- * TODO: class comment
+ * ControlPorts are rendered in an identifiable way.
  * 
  * @author erwin
  */
+@SuppressWarnings("serial")
 public class ControlPort extends Port {
 
 	/**
@@ -35,16 +34,7 @@ public class ControlPort extends Port {
 	 * @throws ptolemy.kernel.util.NameDuplicationException
 	 */
 	public ControlPort(Entity container, String name) throws IllegalActionException, NameDuplicationException {
-		super(container, name);
-		try {
-			// hack to get port layout a bit nicer
-			// works in combination with a modified 
-			// - ptolemy.vergil.toolbox.PortSite
-			// - ptolemy.vergil.actor.ActorController.EntityLayout
-			new StringAttribute(this,"control");
-		} catch (Exception e) {
-			// ignore
-		}
+		this(container, name, false, false);
 	}
 
 	/**

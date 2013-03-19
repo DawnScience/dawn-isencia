@@ -41,6 +41,7 @@ public class FtpSenderChannel extends WriterSenderChannel {
 	private boolean passiveMode = true;
 	private String remote = null; //Remote file to read/write //REMARK: do NOT use "File" as type, there is a problem with Java changing the pathseparator!!! Our ftp doesn't like it...
 	private FTPClient ftp = null;
+	private int port = 21;
 
 	/**
 	 * 
@@ -58,6 +59,23 @@ public class FtpSenderChannel extends WriterSenderChannel {
 		this.binaryTransfer = isBinaryTransfer;
 		this.passiveMode = isPassiveMode;
 		ftp = new FTPClient();
+	}
+	
+	/**
+	 * Additional constructor that allows you to specify the port
+	 * @param destFile
+	 * @param server
+	 * @param port
+	 * @param username
+	 * @param password
+	 * @param isBinaryTransfer
+	 * @param isPassiveMode
+	 * @param generator
+	 */
+	public FtpSenderChannel(String destFile, String server, int port, String username, String password,
+			boolean isBinaryTransfer, boolean isPassiveMode, IMessageGenerator generator) {
+		this(destFile,server,username,password,isBinaryTransfer,isPassiveMode,generator);
+		this.port = port;
 	}
 
 	/**
@@ -79,7 +97,7 @@ public class FtpSenderChannel extends WriterSenderChannel {
 		// CONNECT TO SERVER
 		try {
 			int reply;
-			ftp.connect(server);
+			ftp.connect(server, port);
 			logger.debug("Connected to " + server + ".");
 			
 			// After connection attempt, you should check the reply code to verify

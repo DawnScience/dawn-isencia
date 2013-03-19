@@ -20,7 +20,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
 import ptolemy.actor.Actor;
 import ptolemy.actor.CompositeActor;
 import ptolemy.actor.Director;
@@ -36,6 +35,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.InternalErrorException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.ext.DirectorAdapter;
 
 /**
  * A Flow represents an assembly of interconnected Passerelle actors,
@@ -47,7 +47,9 @@ import ptolemy.kernel.util.Workspace;
  *
  */
 public class Flow extends TypedCompositeActor {
-	/**
+  private static final long serialVersionUID = 1L;
+
+  /**
 	 * For a top-level Flow instance, this field contains the authorative resource location
 	 * from which this Flow instance was constructed.
 	 * 
@@ -102,7 +104,7 @@ public class Flow extends TypedCompositeActor {
 		super(new Workspace(name));
 		setName(name);
 		this.authorativeResourceLocation = authorativeResourceLocation;
-		handle = new FlowHandle(0L, name, authorativeResourceLocation);
+		handle = new FlowHandle(0L, this, authorativeResourceLocation);
 	}
 
 
@@ -117,7 +119,7 @@ public class Flow extends TypedCompositeActor {
 	public Flow(Workspace workspace, URL authorativeResourceLocation) {
 		super(workspace);
 		this.authorativeResourceLocation = authorativeResourceLocation;
-		handle = new FlowHandle(0L, null, authorativeResourceLocation);
+		handle = new FlowHandle(0L, this, authorativeResourceLocation);
 	}
 
   @Override
@@ -248,7 +250,7 @@ public class Flow extends TypedCompositeActor {
 				input.unlink(relation);
 				output.unlink(relation);
 			}
-			if(!relation.linkedPorts().hasMoreElements()) {
+			if(relation.linkedPortList().isEmpty()) {
 				// the relation was only between the given ports
 				// so now it doesn't connect anything anymore
 				// and we'll just remove it altogether
@@ -259,6 +261,10 @@ public class Flow extends TypedCompositeActor {
 				}
 			}
 		}
+	}
+	
+	public DirectorAdapter getDirectorAdapter() throws IllegalActionException {
+      return (DirectorAdapter) getDirector().getAttribute(DirectorAdapter.DEFAULT_ADAPTER_NAME, DirectorAdapter.class);
 	}
 
 	/**

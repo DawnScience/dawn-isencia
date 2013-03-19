@@ -14,6 +14,7 @@
 */
 package com.isencia.passerelle.core;
 
+import com.isencia.passerelle.util.ptolemy.PortParameter;
 import ptolemy.kernel.Entity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
@@ -106,6 +107,14 @@ public class PortFactory {
 	 */
 	public Port createInputPort(Entity container, PortMode mode, Class expectedContentType) throws IllegalActionException, NameDuplicationException {
 		return createInputPort(container, "input", mode, expectedContentType);
+	}
+	
+	public PortParameter createPortParameter(Entity container, String name, Class expectedContentType) throws IllegalActionException, NameDuplicationException {
+	  PortParameter res = new PortParameter(container,name);
+	  // mark it as an agnostic port
+	  res.getPort().setMode(PortMode.AGNOSTIC);
+    res.getPort().setExpectedMessageContentType(expectedContentType);
+    return res;
 	}
 	 /**
 	  * 

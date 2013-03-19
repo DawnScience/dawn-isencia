@@ -33,7 +33,7 @@ import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.core.PortMode;
 
 /**
- * This abstract class provides the basis for "mixin" components
+ * This base class provides the basis for "mixin" components
  * that can be registered on actors to add support for dynamically creating
  * an arbitrary number of named input ports.
  * <p>
@@ -79,7 +79,6 @@ public class InputPortBuilder extends Attribute {
    * Modifying the list contents has no impact on the ports that
    * are actually present on the containing entity.
    */
-  @SuppressWarnings("unchecked")
   public List<Port> getInputPorts() {
     // in order to avoid cloning issues
     // when we would maintain the list of dynamically cfg-ed

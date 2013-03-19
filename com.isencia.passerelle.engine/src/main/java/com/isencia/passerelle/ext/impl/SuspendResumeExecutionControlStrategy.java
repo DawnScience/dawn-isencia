@@ -17,14 +17,14 @@ package com.isencia.passerelle.ext.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.isencia.passerelle.domain.cap.Director;
-import com.isencia.passerelle.ext.ExecutionControlStrategy;
-
 import ptolemy.actor.Actor;
+import ptolemy.actor.Director;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.director.DirectorUtils;
+import com.isencia.passerelle.ext.ExecutionControlStrategy;
 
 /**
  * An execution controller that allows a model execution until a suspend signal
@@ -37,7 +37,7 @@ import ptolemy.kernel.util.NamedObj;
 public class SuspendResumeExecutionControlStrategy extends Attribute implements
 		ExecutionControlStrategy {
 
-	private Logger logger = LoggerFactory.getLogger(SuspendResumeExecutionControlStrategy.class);
+	private static Logger logger = LoggerFactory.getLogger(SuspendResumeExecutionControlStrategy.class);
 	
 	private boolean suspended = false;
 
@@ -46,7 +46,7 @@ public class SuspendResumeExecutionControlStrategy extends Attribute implements
 	 */
 	public SuspendResumeExecutionControlStrategy(Director container, String name) throws IllegalActionException, NameDuplicationException {
         super(container, name);
-		container.setExecutionControlStrategy(this);
+		DirectorUtils.getAdapter(container, null).setExecutionControlStrategy(this);
 		// only for usage inside a IDE or HMI and these will add it everytime it's needed
 		setPersistent(false);
 	}

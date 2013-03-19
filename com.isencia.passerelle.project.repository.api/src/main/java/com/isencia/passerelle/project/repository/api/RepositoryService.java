@@ -31,7 +31,7 @@ import com.isencia.passerelle.model.Flow;
 public interface RepositoryService {
 
   String PROJECT_ROOT = "com.isencia.passerelle.project.root";
-  String SUBMODEL_ROOT = "com.isencia.passerelle.project.root";
+  String SUBMODEL_ROOT = "com.isencia.passerelle.submodel.root";
 	String REVISION_ID = "revisionID";
 	String LOCALE = "locale";
 	String REFERENCE = "REFERENCE";
@@ -102,6 +102,13 @@ public interface RepositoryService {
 	 * @return exists a new version of the project in the repository
 	 */
 	boolean existNewProject(String projectCode);
+	
+	/**
+	 * 
+	 * @param flowCode
+	 * @return exists a new version of the project in the repository
+	 */
+	boolean existNewSubModel(String flowCode);
 
 	/**
 	 * 

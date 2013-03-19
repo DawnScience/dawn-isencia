@@ -11,40 +11,35 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-*/
+ */
 
 package com.isencia.passerelle.model;
 
+import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 
 /**
- * Exception thrown when someone tries to execute a given Flow
- * while it is already executing.
+ * Exception thrown when someone tries to execute a given Flow while it is already executing.
  * 
  * @author erwin
- *
  */
+@SuppressWarnings("serial")
 public class FlowAlreadyExecutingException extends PasserelleException {
 
-	/**
-	 * @param message
-	 * @param context
-	 * @param rootException
-	 */
-	public FlowAlreadyExecutingException(String message, Object context,
-			Throwable rootException) {
-		super(message, context, rootException);
-	}
+  /**
+   * @param flow
+   */
+  public FlowAlreadyExecutingException(NamedObj flow) {
+    super(ErrorCode.FLOW_STATE_ERROR, "Flow already executing", flow, null);
+  }
 
-	/**
-	 * @param severity
-	 * @param message
-	 * @param context
-	 * @param rootException
-	 */
-	public FlowAlreadyExecutingException(Severity severity, String message,
-			Object context, Throwable rootException) {
-		super(severity, message, context, rootException);
-	}
+  /**
+   * @param errorCode
+   * @param flow
+   */
+  public FlowAlreadyExecutingException(ErrorCode errorCode, NamedObj flow) {
+    super(errorCode, flow, null);
+  }
 
 }

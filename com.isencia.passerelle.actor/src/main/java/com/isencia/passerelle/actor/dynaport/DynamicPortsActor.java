@@ -16,8 +16,6 @@ package com.isencia.passerelle.actor.dynaport;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ptolemy.data.IntToken;
 import ptolemy.data.expr.Parameter;
 import ptolemy.data.type.BaseType;
@@ -29,78 +27,68 @@ import com.isencia.passerelle.actor.v5.Actor;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.core.PortMode;
+import com.isencia.passerelle.message.MessageInputContext;
 
 /**
- * Remark : for these kinds of actors, it is not allowed to modify the names of
- * the dynamically generated ports. Otherwise the lookup of the ports can
- * fail...
+ * Remark : for these kinds of actors, it is not allowed to modify the names of the dynamically generated ports.
+ * Otherwise the lookup of the ports can fail...
  * 
- * @author Erwin De Ley
+ * @author Erwin
  */
 public abstract class DynamicPortsActor extends Actor {
+
+  private static final long serialVersionUID = 1L;
 
   static protected enum PortType {
     INPUT, OUTPUT;
   }
 
-  // ~ Static variables/initializers ____________________________________
   public static final String NUMBER_OF_INPUTS = "Number of inputs";
   public static final String NUMBER_OF_OUTPUTS = "Number of outputs";
   public static final String INPUTPORTPREFIX = "input";
   public static final String OUTPUTPORTPREFIX = "output";
 
-  private static Logger logger = LoggerFactory.getLogger(DynamicPortsActor.class);
-
-  // ~ Instance variables _______________________________________________
-  // private List inputPorts = null;
   public Parameter numberOfInputs = null;
   protected int nrInputPorts = 0;
 
-  // private List outputPorts = null;
   public Parameter numberOfOutputs = null;
   protected int nrOutputPorts = 0;
 
   /**
    * Construct an actor in the specified container with the specified name.
    * 
-   * @param container The container.
-   * @param name The name of this actor within the container.
-   * @exception IllegalActionException If the actor cannot be contained by the
-   *              proposed container.
-   * @exception NameDuplicationException If the name coincides with an actor
-   *              already in the container.
+   * @param container
+   *          The container.
+   * @param name
+   *          The name of this actor within the container.
+   * @exception IllegalActionException
+   *              If the actor cannot be contained by the proposed container.
+   * @exception NameDuplicationException
+   *              If the name coincides with an actor already in the container.
    */
   public DynamicPortsActor(CompositeEntity container, String name) throws IllegalActionException, NameDuplicationException {
     super(container, name);
 
-    // Create the parameters
     numberOfInputs = new Parameter(this, NUMBER_OF_INPUTS, new IntToken(0));
     numberOfInputs.setTypeEquals(BaseType.INT);
     numberOfOutputs = new Parameter(this, NUMBER_OF_OUTPUTS, new IntToken(0));
     numberOfOutputs.setTypeEquals(BaseType.INT);
   }
 
-  // ~ Methods __________________________________________________________
-
   /**
-   * @param attribute The attribute that changed.
+   * @param attribute
+   *          The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - entry - attribute :" + attribute);
-    }
-
-    // Change numberOfOutputs
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == numberOfOutputs) {
       int newPortCount = ((IntToken) numberOfOutputs.getToken()).intValue();
       if (newPortCount != nrOutputPorts) {
         changeNumberOfPorts(newPortCount, nrOutputPorts, PortType.OUTPUT);
         nrOutputPorts = newPortCount;
       }
-    }
-    // Change numberOfInputs
-    else if (attribute == numberOfInputs) {
+    } else if (attribute == numberOfInputs) {
       int newPortCount = ((IntToken) numberOfInputs.getToken()).intValue();
       if (newPortCount != nrInputPorts) {
         changeNumberOfPorts(newPortCount, nrInputPorts, PortType.INPUT);
@@ -109,10 +97,7 @@ public abstract class DynamicPortsActor extends Actor {
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - exit");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   /**
@@ -170,17 +155,19 @@ public abstract class DynamicPortsActor extends Actor {
   }
 
   /**
-   * @param newPortCount The amount of ports needed.
-   * @param currPortCount The current nr of ports of the requested type
-   * @param portType PortType.INPUT or PortType.OUTPUT, this parameter is used
-   *          to set default values for a port and to choose a default name.
+   * @param newPortCount
+   *          The amount of ports needed.
+   * @param currPortCount
+   *          The current nr of ports of the requested type
+   * @param portType
+   *          PortType.INPUT or PortType.OUTPUT, this parameter is used to set default values for a port and to choose a
+   *          default name.
    * @throws IllegalActionException
    * @throws IllegalArgumentException
    */
   protected void changeNumberOfPorts(int newPortCount, int currPortCount, PortType portType) throws IllegalActionException, IllegalArgumentException {
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " changeNumberOfPorts() - entry - portType : " + portType + " / new nrOfPorts : " + newPortCount);
+    if (getLogger().isTraceEnabled()) {
+      getLogger().trace("{} changeNumberOfPorts() - entry - portType : {} / new nrOfPorts : {}", new Object[] { getFullName(), portType, newPortCount });
     }
     // Set port to input or output
     // Remark: input is never multiport, output is always multiport
@@ -216,9 +203,7 @@ public abstract class DynamicPortsActor extends Actor {
         createPort(namePrefix, i, isInput, isOutput);
       }
     }
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " changeNumberOfPorts() - exit");
-    }
+    getLogger().trace("{} changeNumberOfPorts() - exit", getFullName());
   }
 
   /**
@@ -230,17 +215,14 @@ public abstract class DynamicPortsActor extends Actor {
    * @throws IllegalActionException
    */
   protected Port createPort(String namePrefix, int index, boolean isInput, boolean isOutput) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " createPort() - entry - name : " + namePrefix + " index : " + index);
-    }
-    Port aPort = null;
     String portName = namePrefix + index;
+    getLogger().trace("{} createPort() - entry - portName : {} ", getFullName(), portName);
+    
+    Port aPort = null;
     try {
       aPort = (Port) getPort(portName);
 
       if (aPort == null) {
-        logger.debug(getInfo() + " createPort() - port " + portName + " will be constructed");
         if (isInput) {
           aPort = PortFactory.getInstance().createInputPort(this, portName, getPortModeForNewInputPort(portName), null);
         } else {
@@ -248,7 +230,7 @@ public abstract class DynamicPortsActor extends Actor {
         }
         aPort.setMultiport(!isInput);
       } else {
-        logger.debug(getInfo() + " createPort() - port " + portName + " already exists");
+        getLogger().debug("{} createPort() - port {} already exists", getFullName(), portName);
         // ensure it has the right characteristics
         aPort.setInput(isInput);
         aPort.setOutput(isOutput);
@@ -257,20 +239,24 @@ public abstract class DynamicPortsActor extends Actor {
     } catch (Exception e) {
       throw new IllegalActionException(this, e, "failed to create port " + portName);
     }
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " createPort() - exit - port : " + aPort);
-    }
+    getLogger().trace("{} createPort() - exit - port : {}", getFullName(), aPort);
     return aPort;
   }
 
   /**
-   * Overridable method to allow subclasses to differentiate the PortMode for
-   * new input ports.
+   * Overridable method to allow subclasses to differentiate the PortMode for new input ports.
    * 
    * @param portName
    * @return
    */
   protected PortMode getPortModeForNewInputPort(String portName) {
     return PortMode.PUSH;
+  }
+
+  protected int getPortIndex(final MessageInputContext messageInputContext) {
+    String portName = messageInputContext.getPortName();
+    String portIndexStr = portName.substring("input".length());
+    int portIndex = Integer.parseInt(portIndexStr);
+    return portIndex;
   }
 }

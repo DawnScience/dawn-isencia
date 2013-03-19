@@ -17,7 +17,7 @@ package com.isencia.passerelle.message.interceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.isencia.message.generator.IMessageGenerator;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.message.internal.SettableMessage;
@@ -54,7 +54,7 @@ public class XMLToMessageConverter extends ManagedMessageConverter {
 				settableMsg.setBodyContent((String) message,"text/xml");
 				settableMsg.saveChanges();
 			} catch (ClassCastException e) {
-				throw new MessageException(PasserelleException.Severity.NON_FATAL,"",managedMsg,e);
+				throw new MessageException(ErrorCode.MSG_CONTENT_TYPE_ERROR,"",managedMsg,e);
 			}
 		}
 

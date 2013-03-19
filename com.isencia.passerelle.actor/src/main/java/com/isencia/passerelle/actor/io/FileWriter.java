@@ -40,8 +40,8 @@ import com.isencia.util.StringConvertor;
  * This actor writes all received msgs in a file.
  */
 public class FileWriter extends ChannelSink {
-
-  private static Logger logger = LoggerFactory.getLogger(FileWriter.class);
+  private static final long serialVersionUID = 1L;
+  private static Logger LOGGER = LoggerFactory.getLogger(FileWriter.class);
 
   public final static String PATH_PARAM = "Path";
   public final static String APPEND_PARAM = "Append";
@@ -67,7 +67,6 @@ public class FileWriter extends ChannelSink {
    */
   public FileWriter(CompositeEntity container, String name) throws IllegalActionException, NameDuplicationException {
     super(container, name);
-
     destinationPathParam = new FileParameter(this, PATH_PARAM);
     try {
       URI baseURI = new URI("file://" + StringConvertor.convertPathDelimiters(EnvironmentUtils.getApplicationRootFolder()));
@@ -84,26 +83,29 @@ public class FileWriter extends ChannelSink {
     appendModeParam.setTypeEquals(BaseType.BOOLEAN);
     registerConfigurableParameter(appendModeParam);
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   /**
    * @param attribute The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == fileEncodingParam) {
       try {
         setFileEncoding(fileEncodingParam.getExpression());
-        logger.debug("fileEncoding changed to : " + getFileEncoding());
+        getLogger().debug("{} File Encoding changed to {}", getFullName(), getFileEncoding());
       } catch (NullPointerException e) {
         // Ignore. Means that path is not a valid URL.
       }
     } else if (attribute == destinationPathParam) {
       try {
         setDestinationPath(destinationPathParam.asFile().getPath());
-        logger.debug("Destination Path changed to : " + getDestinationPath());
+        getLogger().debug("{} Destination Path changed to {}", getFullName(), getDestinationPath());
       } catch (NullPointerException e) {
         // Ignore. Means that path is not a valid URL.
       }
@@ -112,14 +114,10 @@ public class FileWriter extends ChannelSink {
       if (appendToken != null) {
         setAppendMode(appendToken.booleanValue());
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
-  }
-
-  protected String getExtendedInfo() {
-    return getDestinationPath();
+    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected String getFileEncoding() {
@@ -169,12 +167,10 @@ public class FileWriter extends ChannelSink {
   }
 
   protected void openChannel(ISenderChannel ch) throws ChannelException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + ch);
-
+    getLogger().trace("{} openChannel() - entry", getFullName());
     if (ch != null) {
       ((FileSenderChannel) ch).open(isAppendMode());
     }
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    getLogger().trace("{} openChannel() - exit", getFullName());
   }
-
 }

@@ -41,9 +41,9 @@ import com.isencia.passerelle.message.interceptor.TextToMessageConverter;
  * @author dirk
  */
 public class MailReceiver extends TriggeredChannelSource {
-
+  private static final long serialVersionUID = 1L;
   private static final String NOT_APPLICABLE = "N/A";
-  private static Logger logger = LoggerFactory.getLogger(MailReceiver.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(MailReceiver.class);
 
   private final static String[] protocolChoices = new String[] { "pop3", "imap" };
   private final static String[] msgTypeChoices = new String[] { "Messages", "Message Count" };
@@ -51,11 +51,11 @@ public class MailReceiver extends TriggeredChannelSource {
   private final static String[] countTypeChoices = new String[] { "All", "Unread", "New" };
   private final static String[] contentTypeChoices = new String[] { "Text", "HTML", "All" };
 
-  private final static List protocols = Arrays.asList(protocolChoices);
-  private final static List msgTypes = Arrays.asList(msgTypeChoices);
-  private final static List msgStructs = Arrays.asList(msgStructChoices);
-  private final static List countTypes = Arrays.asList(countTypeChoices);
-  private final static List contentTypes = Arrays.asList(contentTypeChoices);
+  private final static List<String> protocols = Arrays.asList(protocolChoices);
+  private final static List<String> msgTypes = Arrays.asList(msgTypeChoices);
+  private final static List<String> msgStructs = Arrays.asList(msgStructChoices);
+  private final static List<String> countTypes = Arrays.asList(countTypeChoices);
+  private final static List<String> contentTypes = Arrays.asList(contentTypeChoices);
 
   public final static int MESSAGETYPE_MESSAGE = 0;
   public final static int MESSAGETYPE_COUNT = 1;
@@ -154,20 +154,23 @@ public class MailReceiver extends TriggeredChannelSource {
     }
 
   }
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
 
   /**
    * @param attribute The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == userParam) {
       StringToken userToken = (StringToken) userParam.getToken();
       if (userToken != null) {
         user = userToken.stringValue();
-        logger.debug("User changed to : " + user);
+        getLogger().debug("{} User changed to {}", getFullName(), user);
         setServerURL();
       }
     } else if (attribute == passwordParam) {
@@ -180,7 +183,7 @@ public class MailReceiver extends TriggeredChannelSource {
       StringToken hostToken = (StringToken) hostParam.getToken();
       if (hostToken != null) {
         host = hostToken.stringValue();
-        logger.debug("Host changed to : " + host);
+        getLogger().debug("{} Host changed to {}", getFullName(), host);
         setServerURL();
       }
     } else if (attribute == protocolParam) {
@@ -191,7 +194,7 @@ public class MailReceiver extends TriggeredChannelSource {
         contentTypeParam.setExpression(prevProtocol);
       } else {
         setProtocol(protocolChoice);
-        logger.debug("Protocol changed to : " + protocolChoice);
+        getLogger().debug("{} Protocol changed to {}", getFullName(), protocolChoice);
         setServerURL();
       }
     } else if (attribute == contentTypeParam) {
@@ -203,7 +206,7 @@ public class MailReceiver extends TriggeredChannelSource {
           contentTypeParam.setExpression((String) contentTypes.get(prevContentType));
         } else {
           setContentType(contentType);
-          logger.debug("Content Type changed to : " + contentTypeChoice);
+          getLogger().debug("{} Content Type changed to {}", getFullName(), contentTypeChoice);
         }
       } else {
         // don't bother, it's not relevant anyway
@@ -221,7 +224,7 @@ public class MailReceiver extends TriggeredChannelSource {
           messageSubTypeParam.setExpression((String) contentTypes.get(0));
         } else if (needAttachments != prevNeedAttachments) {
           setAttachments(needAttachments);
-          logger.debug("Attachments changed to : " + needAttachments);
+          getLogger().debug("{} Attachments changed to {}", getFullName(), needAttachments);
         }
       } else if (msgType == MESSAGETYPE_COUNT) {
         int prevMsgSubType = getMessageCountType();
@@ -230,7 +233,7 @@ public class MailReceiver extends TriggeredChannelSource {
           messageSubTypeParam.setExpression((String) countTypes.get(0));
         } else if (msgSubType != prevMsgSubType) {
           setMessageCountType(msgSubType);
-          logger.debug("CountType changed to : " + msgSubTypeChoice);
+          getLogger().debug("{} CountType changed to {}", getFullName(), msgSubTypeChoice);
         }
       }
     } else if (attribute == messageTypeParam) {
@@ -241,7 +244,7 @@ public class MailReceiver extends TriggeredChannelSource {
         messageTypeParam.setExpression((String) msgTypes.get(prevMsgType));
       } else if (msgType != prevMsgType) {
         setMessageType(msgType);
-        logger.debug("MessageType changed to : " + msgTypeChoice);
+        getLogger().debug("{} MessageType changed to {}", getFullName(), msgTypeChoice);
         // need to ensure that correct subtype choices are shown
         if (msgType == MESSAGETYPE_MESSAGE) {
           String prevMsgSubTypeChoice = messageSubTypeParam.getExpression();
@@ -291,10 +294,10 @@ public class MailReceiver extends TriggeredChannelSource {
           contentTypeParam.setExpression(NOT_APPLICABLE);
         }
       }
-    } else
+    } else {
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   private void setServerURL() {
@@ -302,7 +305,6 @@ public class MailReceiver extends TriggeredChannelSource {
   }
 
   protected IMessageInterceptorChain createInterceptorChain() {
-
     IMessageInterceptorChain interceptors = new MessageInterceptorChain();
     if (getMessageType() == MESSAGETYPE_MESSAGE) {
       MailMessageToMessageConverter convertor = new MailMessageToMessageConverter();
@@ -310,30 +312,28 @@ public class MailReceiver extends TriggeredChannelSource {
         switch (contentType) {
         case CONTENTTYPE_TEXT:
           convertor.setContentTypes(new String[] { "text/plain" });
-          logger.debug("Content type filter set to text/plain");
+          getLogger().debug("{} Content type filter set to text/plain", getFullName());
           break;
         case CONTENTTYPE_HTML:
           convertor.setContentTypes(new String[] { "text/html" });
-          logger.debug("Content type filter set to text/html");
+          getLogger().debug("{} Content type filter set to text/html", getFullName());
           break;
         case CONTENTTYPE_ALL:
           convertor.setContentTypes(new String[] { "text/plain", "text/html" });
-          logger.debug("Content type filter set to all");
+          getLogger().debug("{} Content type filter set to all", getFullName());
           break;
         }
-      } else
+      } else {
         convertor.setContentTypes(null);
-
+      }
       interceptors.add(convertor);
-    } else
+    } else {
       interceptors.add(new TextToMessageConverter(this));
-
+    }
     return interceptors;
   }
 
   protected boolean doPreFire() throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     boolean res = true;
     if (!getChannel().isOpen()) {
       if (server == null) {
@@ -341,118 +341,53 @@ public class MailReceiver extends TriggeredChannelSource {
         res = false;
       }
     }
-
-    if (res) res = super.doPreFire();
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit " + " :" + res);
-
-    return res;
+    return res && super.doPreFire();
   }
 
-  protected String getExtendedInfo() {
-    return user + "@" + host;
-  }
-
-  /**
-   * Returns the attachments.
-   * 
-   * @return boolean
-   */
   public boolean getAttachments() {
     return attachment;
   }
 
-  /**
-   * Returns the content.
-   * 
-   * @return boolean
-   */
   public boolean getContent() {
     return content;
   }
 
-  /**
-   * Returns the contentType.
-   * 
-   * @return int
-   */
   public int getContentType() {
     return contentType;
   }
 
-  /**
-   * Returns the messageType.
-   * 
-   * @return int
-   */
   public int getMessageType() {
     return messageType;
   }
 
-  /**
-   * Sets the attachments.
-   * 
-   * @param attachments The attachments to set
-   */
   public void setAttachments(boolean attachment) {
     this.attachment = attachment;
   }
 
-  /**
-   * Sets the content.
-   * 
-   * @param content The content to set
-   */
   public void setContent(boolean content) {
     this.content = content;
   }
 
-  /**
-   * Sets the contentType.
-   * 
-   * @param contentType The contentType to set
-   */
   public void setContentType(int contentType) {
     this.contentType = contentType;
   }
 
-  /**
-   * Sets the messageType.
-   * 
-   * @param messageType The messageType to set
-   */
   public void setMessageType(int messageType) {
     this.messageType = messageType;
   }
 
-  /**
-   * Returns the messageCountType.
-   * 
-   * @return int
-   */
   public int getMessageCountType() {
     return messageCountType;
   }
 
-  /**
-   * Sets the messageCountType.
-   * 
-   * @param messageCountType The messageCountType to set
-   */
   public void setMessageCountType(int messageCountType) {
     this.messageCountType = messageCountType;
   }
 
-  /**
-   * @return Returns the protocol.
-   */
   public String getProtocol() {
     return protocol;
   }
 
-  /**
-   * @param protocol The protocol to set.
-   */
   public void setProtocol(String protocol) {
     this.protocol = protocol;
   }
@@ -474,8 +409,6 @@ public class MailReceiver extends TriggeredChannelSource {
         break;
       }
     }
-
     return channel;
   }
-
 }

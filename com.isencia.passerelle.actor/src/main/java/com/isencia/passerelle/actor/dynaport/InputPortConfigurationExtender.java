@@ -15,24 +15,14 @@
 
 package com.isencia.passerelle.actor.dynaport;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.data.expr.StringParameter;
 import ptolemy.kernel.Entity;
-import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Settable;
 import ptolemy.kernel.util.ValueListener;
-import com.isencia.passerelle.core.Port;
-import com.isencia.passerelle.core.PortFactory;
-import com.isencia.passerelle.core.PortMode;
 import com.isencia.passerelle.ext.ConfigurationExtender;
 
 /**
@@ -62,7 +52,6 @@ public class InputPortConfigurationExtender extends InputPortBuilder implements 
   // Maybe need to do this change via the attributeChanged() of the containing actor after all?
   // But then this config extender can only work on some specific Passerelle actors that 
   // have adapted attributeChanged()...
-  @Override
   public void valueChanged(Settable settable) {
     // should always be our output port parameter, but still...
     if (settable == inputPortNamesParameter) {

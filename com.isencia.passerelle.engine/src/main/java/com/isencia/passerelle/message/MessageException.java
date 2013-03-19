@@ -14,33 +14,34 @@
 */
 package com.isencia.passerelle.message;
 
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 
 /**
  * MessageException
  * 
- * TODO: class comment
  * 
  * @author erwin
  */
 public class MessageException extends PasserelleException {
 
-	/**
-	 * @param message
-	 * @param context
-	 * @param rootException
-	 */
-	public MessageException(String message, Object context, Throwable rootException) {
-		super(message, context, rootException);
-	}
-	/**
-	 * @param severity
-	 * @param message
-	 * @param context
-	 * @param rootException
-	 */
-	public MessageException(Severity severity, String message, Object context, Throwable rootException) {
-		super(severity, message, context, rootException);
-	}
+  private static final long serialVersionUID = 1L;
 
+  /**
+   * @param errorCode
+   * @param message
+   * @param rootException
+   */
+  public MessageException(ErrorCode errorCode, String message, Throwable rootException) {
+    super(errorCode, message, rootException);
+  }
+  /**
+   * @param errorCode
+   * @param message
+   * @param context
+   * @param rootException
+   */
+  public MessageException(ErrorCode errorCode, String message, ManagedMessage msgContext, Throwable rootException) {
+    super(errorCode, message, null, msgContext, rootException);
+  }
 }

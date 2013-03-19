@@ -65,7 +65,7 @@ class ImportClassAction extends FigureAction {
 				EnvironmentUtils.setLastSelectedDirectory(fileChooser.getCurrentDirectory());
 				MoMLParser parser = new MoMLParser();
 				try {
-					Entity e = (Entity) parser.parse(null, actorFile.toURL());
+					Entity e = (Entity) parser.parse(null, actorFile.toURI().toURL());
 					panel.getLibraryManager().saveEntityInLibrary(lib, e);
 				} catch (Exception e) {
 					MessageHandler.error("Failed to load actor", e);

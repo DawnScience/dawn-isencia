@@ -19,68 +19,63 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.data.IntToken;
 import ptolemy.data.expr.Parameter;
-import ptolemy.data.expr.StringParameter;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.Sink;
-import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 
 /**
  * Dump a message on the console
  * 
- * @author dja
- * @version 1.0
+ * @author dirk
  */
 public class Console extends Sink {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-  private static Logger logger = LoggerFactory.getLogger(Console.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(Console.class);
 
   public Parameter chopLengthParam;
   private int chopLength = 80;
-  
+
   /**
-   * @param container The container.
-   * @param name The name of this actor.
-   * @exception IllegalActionException If the entity cannot be contained by the
-   *              proposed container.
-   * @exception NameDuplicationException If the container already has an actor
-   *              with this name.
+   * @param container
+   *          The container.
+   * @param name
+   *          The name of this actor.
+   * @exception IllegalActionException
+   *              If the entity cannot be contained by the proposed container.
+   * @exception NameDuplicationException
+   *              If the container already has an actor with this name.
    */
   public Console(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
     super(container, name);
-    // input.setMultiport(true);
-
     chopLengthParam = new Parameter(this, "Chop output at #chars", new IntToken(chopLength));
   }
 
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
+  }
+
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " :" + attribute);
-
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
     if (attribute == chopLengthParam) {
       IntToken chopLengthToken = (IntToken) chopLengthParam.getToken();
       if (chopLengthToken != null) {
         chopLength = chopLengthToken.intValue();
-        logger.debug("Chop length changed to : " + chopLength);
+        LOGGER.debug("Chop length changed to : " + chopLength);
       }
     } else
       super.attributeChanged(attribute);
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   protected void sendMessage(ManagedMessage message) throws ProcessingException {
-    if (logger.isTraceEnabled()) logger.trace(getInfo());
-
     if (message != null) {
       if (isPassThrough()) {
         getConsole().println(message.toString());
@@ -92,15 +87,13 @@ public class Console extends Sink {
             content = content.substring(0, chopLength) + " !! CHOPPED !! ";
           }
         } catch (MessageException e) {
-          throw new ProcessingException(PasserelleException.Severity.NON_FATAL, "", message, e);
+          throw new ProcessingException(ErrorCode.MSG_DELIVERY_FAILURE, "Error sending msg to console", this, message, e);
         }
-        if (content != null) getConsole().println(content);
+        if (content != null)
+          getConsole().println(content);
       }
-
       getConsole().flush();
     }
-
-    if (logger.isTraceEnabled()) logger.trace(getInfo() + " - exit ");
   }
 
   public int getChopLength() {
@@ -108,16 +101,11 @@ public class Console extends Sink {
   }
 
   /**
-   * Method that can be overridden in subclasses, to define other console
-   * instances.
+   * Method that can be overridden in subclasses, to define other console instances.
    * 
    * @return
    */
   protected PrintStream getConsole() {
     return System.out;
-  }
-
-  protected String getExtendedInfo() {
-    return "StdOut Console";
   }
 }

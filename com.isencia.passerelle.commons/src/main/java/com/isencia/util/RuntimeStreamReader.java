@@ -23,39 +23,44 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 /**
- * RuntimeStreamReader TODO: class comment
- * 
- * @author wim
+ * RuntimeStreamReader 
+ * <p>
+ * A utility class to handle streams from launched processes in a correct way.
+ * </p>
+ * <p>
+ * For basic use cases, this is used with a PrintStream or Writer that will receive any output or error outputs from the running process.
+ * A more advanced usage can be implemented by registering a listener that will receive the output/error line-by-line.
+ * </p>
+ * @author wim & erwin
  */
 public class RuntimeStreamReader extends Thread {
-  // ~ Instance variables
-  // _____________________________________________________________________________________________________________________________________
+  
+  private InputStream inputStr;
+  private Object lock;
+  private Type type;
+  private Writer plainTextWriter;
 
-  InputStream is = null;
-  Object lock = null;
-  Type type = null;
-  Writer os1 = null;
-  Writer os2 = null;
+  private PrintStream plainTextPrintStream;
+  private RuntimeStreamListener listener;
 
-  PrintStream ps1 = null;
-  PrintStream ps2 = null;
-
-  // ~ Constructors
-  // ___________________________________________________________________________________________________________________________________________
-
-  public RuntimeStreamReader(Object lock, InputStream is, Type type, Writer htmlWriter, Writer asciiWriter) {
-    this.is = is;
+  public RuntimeStreamReader(Object lock, InputStream is, Type type, Writer writer) {
+    this.inputStr = is;
     this.type = type;
-    this.os1 = htmlWriter;
-    this.os2 = asciiWriter;
+    this.plainTextWriter = writer;
     this.lock = lock;
   }
 
-  public RuntimeStreamReader(Object lock, InputStream is, Type type, PrintStream htmlStream, PrintStream asciiStream) {
-    this.is = is;
+  public RuntimeStreamReader(Object lock, InputStream is, Type type, PrintStream prtStream) {
+    this.inputStr = is;
     this.type = type;
-    this.ps1 = htmlStream;
-    this.ps2 = asciiStream;
+    this.plainTextPrintStream = prtStream;
+    this.lock = lock;
+  }
+
+  public RuntimeStreamReader(Object lock, InputStream is, Type type, RuntimeStreamListener listener) {
+    this.inputStr = is;
+    this.type = type;
+    this.listener = listener;
     this.lock = lock;
   }
 
@@ -64,43 +69,27 @@ public class RuntimeStreamReader extends Thread {
    */
   public void run() {
     try {
-      PrintWriter pw1 = null;
-
-      if (null != os1) {
-        pw1 = new PrintWriter(os1);
-      }
-      if (null != ps1) {
-        pw1 = new PrintWriter(ps1);
+      PrintWriter pw = null;
+      if (null != plainTextWriter) {
+        pw = new PrintWriter(plainTextWriter);
       }
 
-      PrintWriter pw2 = null;
-
-      if (null != os2) {
-        pw2 = new PrintWriter(os2);
+      if (null != plainTextPrintStream) {
+        pw = new PrintWriter(plainTextPrintStream);
       }
-
-      if (null != ps2) {
-        pw2 = new PrintWriter(ps2);
-      }
-      InputStreamReader isr = new InputStreamReader(is);
+      InputStreamReader isr = new InputStreamReader(inputStr);
       BufferedReader br = new BufferedReader(isr);
       String line = null;
 
       while ((line = br.readLine()) != null) {
-        if (pw1 != null) {
-          if (type == Type.error) {
-            pw1.println("<FONT style=\"font-size:10px;font-family:sans-serif;color:red;\"> &gt;&gt;&nbsp;" + line + "<BR></FONT>");
-          } else {
-            pw1.println("<FONT style=\"font-size:10px;font-family:sans-serif;\"> &gt;&gt;&nbsp;" + line + "<BR></FONT>");
-          }
-          pw1.flush();
+        if (pw != null) {
+          pw.println(line);
+          pw.flush();
         }
-
-        if (pw2 != null) {
-          pw2.println(line);
-          pw2.flush();
+        
+        if(listener!=null) {
+          listener.acceptLine(line);
         }
-
       }
     } catch (IOException ioe) {
       ioe.printStackTrace();
@@ -111,8 +100,14 @@ public class RuntimeStreamReader extends Thread {
     }
   }
 
-  // ~ Classes
-  // ________________________________________________________________________________________________________________________________________________
+  /**
+   * Simple callback/listener that can implement custom/advanced
+   * logic that should be applied on process output/error stream text.
+   *
+   */
+  public interface RuntimeStreamListener {
+    void acceptLine(String newLine);
+  }
 
   public static final class Type {
     public static final Type output = new Type(1, "Output");

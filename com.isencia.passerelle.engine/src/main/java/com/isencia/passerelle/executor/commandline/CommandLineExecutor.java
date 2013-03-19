@@ -76,10 +76,10 @@ public class CommandLineExecutor {
             synchronized (errorStreamLock) {
                 synchronized (outputStreamLock) {
                     // any output message ?
-                    RuntimeStreamReader outputStream = new RuntimeStreamReader(outputStreamLock, process.getInputStream(), RuntimeStreamReader.Type.output, null, System.out);
+                    RuntimeStreamReader outputStream = new RuntimeStreamReader(outputStreamLock, process.getInputStream(), RuntimeStreamReader.Type.output, System.out);
 
                     // any error message ?
-                    RuntimeStreamReader errorStream = new RuntimeStreamReader(errorStreamLock, process.getErrorStream(), RuntimeStreamReader.Type.error, null, System.out);
+                    RuntimeStreamReader errorStream = new RuntimeStreamReader(errorStreamLock, process.getErrorStream(), RuntimeStreamReader.Type.error, System.err);
 
                     outputStream.start();
                     errorStream.start();
@@ -89,10 +89,11 @@ public class CommandLineExecutor {
 
                 errorStreamLock.wait();
             }
+            System.out.println("Model Execution finished");
+            System.exit(process.exitValue());
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
-        
-        System.out.println("Model Execution finished");
     }
 }

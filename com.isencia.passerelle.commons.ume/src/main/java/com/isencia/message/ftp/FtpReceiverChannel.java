@@ -14,16 +14,17 @@
 */
 package com.isencia.message.ftp;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.isencia.message.ChannelException;
 import com.isencia.message.ISenderChannel;
 import com.isencia.message.ReaderReceiverChannel;
@@ -42,9 +43,9 @@ public class FtpReceiverChannel extends ReaderReceiverChannel {
 	private String password;
 	private boolean binaryTransfer = false; //the transfermode (default ascii)
 	private boolean passiveMode = true;
-	private File remote; //Remote file to read/write
+	private String remote; //Remote file to read/write
 	private FTPClient ftp;
-	
+	private int port = 21;
 	
 	
 	/**
@@ -53,7 +54,7 @@ public class FtpReceiverChannel extends ReaderReceiverChannel {
 	 * @param generator Flushes messages through the channel
 	 * (channel close => destFile closed, the generator can only write while channel open)
 	 */
-	public FtpReceiverChannel(File destFile, String server, String username, String password,
+	public FtpReceiverChannel(String destFile, String server, String username, String password,
 													boolean isBinaryTransfer, boolean isPassiveMode, IMessageExtractor extractor) {
 		super(extractor);
 		this.remote = destFile; //Remote file to read/write
@@ -63,6 +64,23 @@ public class FtpReceiverChannel extends ReaderReceiverChannel {
 		this.binaryTransfer = isBinaryTransfer;
 		this.passiveMode = isPassiveMode;
 		ftp = new FTPClient();
+	}
+	
+	/**
+	 * Additional constructor that allows you to specify the port
+	 * @param destFile
+	 * @param server
+	 * @param port
+	 * @param username
+	 * @param password
+	 * @param isBinaryTransfer
+	 * @param isPassiveMode
+	 * @param extractor
+	 */
+	public FtpReceiverChannel(String destFile, String server, int port, String username, String password,
+			boolean isBinaryTransfer, boolean isPassiveMode, IMessageExtractor extractor) {
+		this(destFile, server, username, password, isBinaryTransfer, isPassiveMode, extractor);
+		this.port = port;
 	}
 
 	/**
@@ -84,7 +102,7 @@ public class FtpReceiverChannel extends ReaderReceiverChannel {
 		// CONNECT TO SERVER
 		try {
 			int reply;
-			ftp.connect(server);
+			ftp.connect(server, port);
 			logger.debug("Connected to " + server + ".");
 			
 			// After connection attempt, you should check the reply code to verify
@@ -140,11 +158,14 @@ public class FtpReceiverChannel extends ReaderReceiverChannel {
 		
 		
 		try {
-			setReader(new InputStreamReader(ftp.retrieveFileStream(remote.getPath()),"UTF-8"));
-		} catch (FileNotFoundException e) {
-			throw new ChannelException("Error opening source file "+remote.getAbsolutePath()+" (file not found): "+e.getMessage());
+			InputStream remoteFileStream = ftp.retrieveFileStream(remote);
+			if (remoteFileStream == null) {
+				int reply = ftp.getReplyCode();
+				throw new ChannelException("Error opening source file " + remote + " (file not found). Reply code: " + Integer.toString(reply));
+			}
+			setReader(new InputStreamReader(remoteFileStream,"UTF-8"));
 		} catch (IOException e) {
-			throw new ChannelException("Error opening source file "+remote.getAbsolutePath()+" : "+e.getMessage());
+			throw new ChannelException("Error opening source file "+remote +" : "+e.getMessage());
 		}
 		
 		super.open();

@@ -109,4 +109,8 @@ public class FileSystemBasedProject implements Project {
 
     return 0L;
   }
+
+  public Flow getSubModel(String flowCode) {
+    return getFlow(flowCode);
+  }
 }

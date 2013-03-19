@@ -25,6 +25,7 @@ import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.actor.ProcessingException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
@@ -42,33 +43,27 @@ import com.isencia.passerelle.message.MessageHelper;
  * @author erwin
  */
 public class LoopController extends Actor {
-  private final static Logger logger = LoggerFactory.getLogger(LoopController.class);
+  private static final long serialVersionUID = 1L;
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(LoopController.class);
 
   // input ports
   public Port countPort;
-
   public Port inputPort;
-
   public Port handledPort;
-
-  private boolean countPortExhausted = false;
-
-  private boolean inputPortExhausted = false;
-
-  private boolean handledPortExhausted = false;
-
   // output port
   public Port outputPort;
 
+  private boolean countPortExhausted = false;
+  private boolean inputPortExhausted = false;
+  private boolean handledPortExhausted = false;
+
   // Parameter
   public Parameter maxCountParam;
-
   // cfg via Parameter
   private int maxCount = 100;
-
   // maxCount or overridden by input msg content
   private int loopCount = maxCount;
-
   // actual index where the loop is currently
   private int currentLoopIndex = 0;
 
@@ -94,60 +89,44 @@ public class LoopController extends Actor {
         + "<line x1=\"-19\" y1=\"-19\" x2=\"-19\" y2=\"19\" " + "style=\"stroke-width:1.0;stroke:white\"/>\n"
         + "<line x1=\"20\" y1=\"-19\" x2=\"20\" y2=\"20\" " + "style=\"stroke-width:1.0;stroke:black\"/>\n" + "<line x1=\"-19\" y1=\"20\" x2=\"20\" y2=\"20\" "
         + "style=\"stroke-width:1.0;stroke:black\"/>\n" + "<line x1=\"19\" y1=\"-18\" x2=\"19\" y2=\"19\" " + "style=\"stroke-width:1.0;stroke:grey\"/>\n"
-        + "<line x1=\"-18\" y1=\"19\" x2=\"19\" y2=\"19\" " + "style=\"stroke-width:1.0;stroke:grey\"/>\n" +
-
-        "<circle cx=\"0\" cy=\"0\" r=\"10\"" + "style=\"fill:white;stroke-width:2.0\"/>\n" +
-
-        "<line x1=\"10\" y1=\"0\" x2=\"7\" y2=\"-3\" " + "style=\"stroke-width:2.0\"/>\n" + "<line x1=\"10\" y1=\"0\" x2=\"13\" y2=\"-3\" "
-        + "style=\"stroke-width:2.0\"/>\n" +
-
-        "</svg>\n");
-
+        + "<line x1=\"-18\" y1=\"19\" x2=\"19\" y2=\"19\" " + "style=\"stroke-width:1.0;stroke:grey\"/>\n"
+        + "<circle cx=\"0\" cy=\"0\" r=\"10\"" + "style=\"fill:white;stroke-width:2.0\"/>\n"
+        + "<line x1=\"10\" y1=\"0\" x2=\"7\" y2=\"-3\" " + "style=\"stroke-width:2.0\"/>\n" + "<line x1=\"10\" y1=\"0\" x2=\"13\" y2=\"-3\" "
+        + "style=\"stroke-width:2.0\"/>\n"
+        + "</svg>\n");
   }
-
-  protected String getExtendedInfo() {
-    return "" + maxCount;
+  
+  @Override
+  protected Logger getLogger() {
+    return LOGGER;
   }
 
   protected void doInitialize() throws InitializationException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - doInitialize() - entry");
-    }
-
     super.doInitialize();
     countPortExhausted = !(countPort.getWidth() > 0);
     inputPortExhausted = false;
     handledPortExhausted = !(handledPort.getWidth() > 0);
     currentLoopIndex = 0;
-
     try {
       maxCount = ((IntToken) maxCountParam.getToken()).intValue();
       loopCount = maxCount;
     } catch (IllegalActionException e) {
-      throw new InitializationException("Error reading maxCount", maxCountParam, e);
-    }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - doInitialize() - exit");
+      throw new InitializationException(ErrorCode.FLOW_EXECUTION_FATAL, "Error reading maxCount", maxCountParam, e);
     }
   }
 
   protected void doFire() throws ProcessingException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - doFire() - entry");
-    }
-
     ManagedMessage countMsg = null;
     ManagedMessage inputMsg = null;
     Long seqCount = null;
-
     // always read count first
     if (!countPortExhausted) {
       try {
         countMsg = MessageHelper.getMessage(countPort);
         if (countMsg != null) {
-          if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - received msg on port " + countPort.getName() + " msg :" + countMsg);
-
+          if(getLogger().isDebugEnabled()) {
+            getLogger().debug("{} doFire() - received {}", getFullName(), getAuditTrailMessage(countMsg, countPort));
+          }
           Object content = countMsg.getBodyContent();
           if (content instanceof Number) {
             loopCount = ((Number) content).intValue();
@@ -162,12 +141,12 @@ public class LoopController extends Actor {
           loopCount = (loopCount > maxCount) ? maxCount : loopCount;
         } else {
           countPortExhausted = true;
-          if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - found exhausted port " + countPort.getName());
+          getLogger().debug("{} doFire() - found exhausted port {}", countPort);
         }
       } catch (MessageException e) {
-        throw new ProcessingException("Error reading msg content", countMsg, e);
+        throw new ProcessingException(ErrorCode.MSG_CONTENT_TYPE_ERROR, "Error reading msg content", this, countMsg, e);
       } catch (PasserelleException e) {
-        throw new ProcessingException("Error reading from port", countPort, e);
+        throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error reading from port", countPort, e);
       }
     }
 
@@ -175,17 +154,16 @@ public class LoopController extends Actor {
       try {
         inputMsg = MessageHelper.getMessage(inputPort);
         if (inputMsg != null) {
-          if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - received msg on port " + inputPort.getName() + " msg :" + inputMsg);
+          getLogger().debug("{} doFire() - received {}", getFullName(), getAuditTrailMessage(inputMsg, inputPort));
           seqCount = MessageFactory.getInstance().createSequenceID();
         } else {
           inputPortExhausted = true;
-          if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - found exhausted port " + inputPort.getName());
+          getLogger().debug("{} doFire() - found exhausted port {}",  inputPort.getName());
         }
       } catch (PasserelleException e) {
-        throw new ProcessingException("Error reading from port", inputPort, e);
+        throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error reading from port", inputPort, e);
       }
     }
-
     if (inputMsg != null) {
       // send out first msg of the loop
       sendLoopData(inputMsg, null, seqCount, 0, (0 >= loopCount));
@@ -200,26 +178,20 @@ public class LoopController extends Actor {
           if (!handledPortExhausted) {
             handledMsg = MessageHelper.getMessage(handledPort);
             if (handledMsg != null) {
-              if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - received msg on port " + handledPort.getName());
-
+              getLogger().debug("{} doFire() - received {}", getFullName(), getAuditTrailMessage(handledMsg, handledPort));
             } else {
               handledPortExhausted = true;
-              if (logger.isDebugEnabled()) logger.debug(getInfo() + " doFire() - found exhausted port " + handledPort.getName());
+              getLogger().debug("{} doFire() - found exhausted port {}",  handledPort.getName());
             }
           }
           sendLoopData(inputMsg, handledMsg, seqCount, currentLoopIndex, (currentLoopIndex >= loopCount - 1));
         } catch (PasserelleException e) {
-          throw new ProcessingException("Error reading from port", inputPort, e);
+          throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error reading from port", handledPort, e);
         }
       }
     }
-
     if (areAllInputsFinished()) {
       requestFinish();
-    }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " - doFire() - exit");
     }
   }
 
@@ -232,20 +204,10 @@ public class LoopController extends Actor {
     try {
       resultMsg = MessageFactory.getInstance().createMessageCopyInSequence(inputMsg, seqCount, new Long(seqPos), seqEnd);
       if (handledMsg != null) resultMsg.addCauseID(handledMsg.getID());
-
     } catch (MessageException e) {
-      throw new ProcessingException("Error creating msg copy", inputMsg, e);
+      throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error creating msg copy", this, inputMsg, e);
     }
-    try {
-      sendOutputMsg(outputPort, resultMsg);
-    } catch (IllegalArgumentException e) {
-      throw new ProcessingException("Error sending msg", inputMsg, e);
-    }
-  }
-
-  protected String getAuditTrailMessage(ManagedMessage message, Port port) {
-    // doesn't need audit trail logging
-    return null;
+    sendOutputMsg(outputPort, resultMsg);
   }
 
   /**
@@ -264,5 +226,4 @@ public class LoopController extends Actor {
   public int getLoopCount() {
     return currentLoopIndex;
   }
-
 }

@@ -20,12 +20,11 @@ import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.StringAttribute;
 
 /**
- * ErrorPort
- * 
- * TODO: class comment
+ * ErrorPorts are rendered in an identifiable way.
  * 
  * @author erwin
  */
+@SuppressWarnings("serial")
 public class ErrorPort extends Port {
 
 	/**
@@ -35,16 +34,7 @@ public class ErrorPort extends Port {
 	 * @throws ptolemy.kernel.util.NameDuplicationException
 	 */
 	public ErrorPort(Entity container, String name) throws IllegalActionException, NameDuplicationException {
-		super(container, name);
-		try {
-			// hack to get port layout a bit nicer
-			// works in combination with a modified 
-			// - ptolemy.vergil.toolbox.PortSite
-			// - ptolemy.vergil.actor.ActorController.EntityLayout
-			new StringAttribute(this,"error");
-		} catch (Exception e) {
-			// ignore
-		}
+		this(container, name, false, false);
 	}
 
 	/**

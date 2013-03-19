@@ -56,7 +56,7 @@ public interface MessageBuffer {
 	 * @param provider should be not-null
 	 * @return true if the given provider was not yet registered
 	 */
-	boolean registerMessageProvider(Object provider);
+	boolean registerMessageProvider(MessageProvider provider);
 	
 	/**
 	 * When all providers have been unregistered, the MessageBuffer
@@ -65,5 +65,5 @@ public interface MessageBuffer {
 	 * @param provider
 	 * @return true if the given provider was registered, false if not
 	 */
-	boolean unregisterMessageProvider(Object provider);
+	boolean unregisterMessageProvider(MessageProvider provider);
 }

@@ -16,15 +16,15 @@ package com.isencia.passerelle.message.type;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptolemy.data.Token;
+import ptolemy.data.type.Type;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.PasserelleToken;
 import com.isencia.passerelle.core.PasserelleType;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageException;
 import com.isencia.passerelle.message.MessageFactory;
-
-import ptolemy.data.Token;
-import ptolemy.data.type.Type;
 
 /**
  * @author erwin
@@ -48,7 +48,7 @@ public abstract class ConverterBase implements TypeConverter {
 						ManagedMessage passerelleMsg = passerelleMsgToken.getMessage();
 						result = convertContentToToken(passerelleMsg.getBodyContent(), targetType);
 					} catch (MessageException e) {
-						throw new PasserelleException("", passerelleMsgToken, e);
+						throw new PasserelleException(ErrorCode.MSG_CONTENT_TYPE_ERROR, "Error converting to "+targetType + " from " + passerelleMsgToken, e);
 					}
 					return result;
 				} else {

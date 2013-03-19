@@ -17,10 +17,11 @@ package com.isencia.passerelle.ext.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.isencia.passerelle.domain.cap.Director;
+import com.isencia.passerelle.director.DirectorUtils;
 import com.isencia.passerelle.ext.ExecutionControlStrategy;
 
 import ptolemy.actor.Actor;
+import ptolemy.actor.Director;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
@@ -45,7 +46,7 @@ public class StartStopExecutionControlStrategy extends Attribute implements
 	 */
 	public StartStopExecutionControlStrategy(Director container, String name) throws IllegalActionException, NameDuplicationException {
         super(container, name);
-		container.setExecutionControlStrategy(this);
+		DirectorUtils.getAdapter(container, null).setExecutionControlStrategy(this);
 	}
 	
 	public synchronized boolean isStarted() {

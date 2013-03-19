@@ -18,14 +18,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ptolemy.data.expr.StringParameter;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import com.isencia.passerelle.actor.v5.Actor;
+import com.isencia.passerelle.core.ErrorCode;
+import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 
@@ -34,14 +34,13 @@ import com.isencia.passerelle.core.PortFactory;
  * the dynamically generated ports, outside of the actor parameter config panel.
  * Otherwise the lookup of the ports can fail...
  * 
- * @author Erwin De Ley
+ * @author Erwin
  */
 public abstract class DynamicNamedOutputPortsActor extends Actor {
 
-  // ~ Static variables/initializers ____________________________________
-  public static final String OUTPUT_PORTNAMES = "Output port names (comma-separated)";
+  private static final long serialVersionUID = 1L;
 
-  private static Logger logger = LoggerFactory.getLogger(DynamicNamedOutputPortsActor.class);
+  public static final String OUTPUT_PORTNAMES = "Output port names (comma-separated)";
 
   public StringParameter outputPortNamesParameter = null;
   public Set<String> outputPortNames = new HashSet<String>();
@@ -62,35 +61,26 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
     outputPortNamesParameter = new StringParameter(this, OUTPUT_PORTNAMES);
   }
 
-  // ~ Methods __________________________________________________________
-
   /**
    * @param attribute The attribute that changed.
    * @exception IllegalActionException
    */
   public void attributeChanged(Attribute attribute) throws IllegalActionException {
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - entry - attribute :" + attribute);
-    }
+    getLogger().trace("{} attributeChanged() - entry : {}", getFullName(), attribute);
 
-    // Change numberOfOutputs
     if (attribute == outputPortNamesParameter) {
       String outputPortNames = outputPortNamesParameter.getExpression();
       changeOutputPorts(outputPortNames);
     } else {
       super.attributeChanged(attribute);
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " attributeChanged() - exit");
-    }
+    getLogger().trace("{} attributeChanged() - exit", getFullName());
   }
 
   /**
    * @return Returns the outputPorts.
    */
-  @SuppressWarnings("unchecked")
-  public List<Port> getOutputPorts() {
+  public List<Port> getOutputPorts() throws PasserelleException {
     // in order to avoid cloning issues
     // when we would maintain the list of dynamically cfg-ed
     // output ports in an instance variable,
@@ -102,7 +92,7 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
       if (p != null)
         ports.add(p);
       else {
-        logger.error(getInfo() + " - internal error - configured port not found with name " + portName);
+        throw new PasserelleException(ErrorCode.FLOW_CONFIGURATION_ERROR, "Configured port not found with name " + portName, this, null);
       }
     }
     return ports;
@@ -114,10 +104,7 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
    * @throws IllegalArgumentException
    */
   protected void changeOutputPorts(String portNames) throws IllegalActionException, IllegalArgumentException {
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " changeOutputPorts() - entry - portNames : " + portNames);
-    }
+    getLogger().trace("{} changeOutputPorts() - entry - portNames : {}", getFullName(), portNames);
 
     Set<String> previousPortNames = outputPortNames;
     outputPortNames = new HashSet<String>();
@@ -142,10 +129,7 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
         throw new IllegalActionException(this, e, "failed to remove port " + portName);
       }
     }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " changeNumberOfPorts() - exit");
-    }
+    getLogger().trace("{} changeOutputPorts() - exit", getFullName());
   }
 
   /**
@@ -154,16 +138,12 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
    * @throws IllegalActionException
    */
   protected Port createPort(String portName) throws IllegalActionException {
-
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " createPort() - entry - name : " + portName);
-    }
+    getLogger().trace("{} createPort() - entry - portName : {}", getFullName(), portName);
     Port aPort = null;
     try {
       aPort = (Port) getPort(portName);
 
       if (aPort == null) {
-        logger.debug(getInfo() + " createPort() - port " + portName + " will be constructed");
         aPort = PortFactory.getInstance().createOutputPort(this, portName);
         aPort.setMultiport(true);
       } else {
@@ -172,10 +152,7 @@ public abstract class DynamicNamedOutputPortsActor extends Actor {
     } catch (Exception e) {
       throw new IllegalActionException(this, e, "failed to create port " + portName);
     }
-    if (logger.isTraceEnabled()) {
-      logger.trace(getInfo() + " createPort() - exit - port : " + aPort);
-    }
+    getLogger().trace("{} createPort() - exit - port : {}", getFullName(), aPort);
     return aPort;
   }
-
 }

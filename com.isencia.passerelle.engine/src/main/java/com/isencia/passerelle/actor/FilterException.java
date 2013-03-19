@@ -14,6 +14,10 @@
 */
 package com.isencia.passerelle.actor;
 
+import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.core.ErrorCode;
+import com.isencia.passerelle.message.ManagedMessage;
+
 /**
  * FilterException
  * 
@@ -22,12 +26,46 @@ package com.isencia.passerelle.actor;
  * @author erwin
  */
 public class FilterException extends ProcessingException {
-
+  private static final long serialVersionUID = 1L;
+  /**
+   * 
+   * @param message
+   * @param context
+   * @param rootException
+   * @deprecated
+   */
 	public FilterException(String message, Object context, Throwable rootException) {
 		super(message,context,rootException);
 	}
+	/**
+	 * 
+	 * @param severity
+	 * @param message
+	 * @param context
+	 * @param rootException
+   * @deprecated
+	 */
 	public FilterException(Severity severity, String message, Object context, Throwable rootException) {
 		super(severity,message,context,rootException);
 	}
-
+  /**
+   * @param errorCode
+   * @param message
+   * @param modelElement
+   * @param rootException
+   */
+  public FilterException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+    super(errorCode, message, modelElement, rootException);
+  }
+  /**
+   * 
+   * @param errorCode
+   * @param message
+   * @param modelElement
+   * @param msgContext
+   * @param rootException
+   */
+  public FilterException(ErrorCode errorCode, String message, NamedObj modelElement, ManagedMessage msgContext, Throwable rootException) {
+    super(errorCode, message, modelElement, msgContext, rootException);
+  }
 }

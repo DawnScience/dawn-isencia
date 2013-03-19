@@ -1,16 +1,16 @@
 /* Copyright 2011 - iSencia Belgium NV
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
  */
 package com.isencia.util.commandline;
 
@@ -25,14 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Extends <cod>EnvCommandline</code> by adding stdout and stderr stream
- * handling as well as some assertions to check for proper execution of the
- * command.
+ * Extends <cod>EnvCommandline</code> by adding stdout and stderr stream handling as well as some assertions to check for proper execution of the command.
  * <p>
- * Modified to use better approach to handle stdout and stderr streams, using a
- * "gobbler"thread to ensure sufficiently rapid and concurrent clearing of the
- * OS stream buffers. (cfr this <a href=
- * "http://www.javaworld.com/javaworld/jw-12-2000/jw-1229-traps.html?page=4">
+ * Modified to use better approach to handle stdout and stderr streams, using a "gobbler"thread to ensure sufficiently rapid and concurrent clearing of the OS
+ * stream buffers. (cfr this <a href= "http://www.javaworld.com/javaworld/jw-12-2000/jw-1229-traps.html?page=4">
  * </p>
  * JavaWorld article on correct launching of subprocesses in Java</a>)
  * 
@@ -47,12 +43,11 @@ public class ManagedCommandline extends EnvCommandline {
 
   private StreamGobbler stdOutGobbler;
   private StreamGobbler stdErrGobbler;
-  private boolean streamLogsToLogging=false;
-  private boolean streamLogsToLoggingAndSaved=false;
+  private boolean streamLogsToLogging = false;
+  private boolean streamLogsToLoggingAndSaved = false;
 
   /**
-   * Constructor which takes a command line string and attempts to parse it into
-   * it's various components.
+   * Constructor which takes a command line string and attempts to parse it into it's various components.
    * 
    * @param command The command
    */
@@ -70,21 +65,20 @@ public class ManagedCommandline extends EnvCommandline {
   /**
    * Returns the exit code of the command as reported by the OS.
    * 
-   * @return The exit code of the command, if no command was executed, returns
-   *         -1
+   * @return The exit code of the command, if no command was executed, returns -1
    */
   public int getExitCode() {
     return currentProcess != null ? currentProcess.exitValue() : -1;
   }
 
-    public boolean hasTerminated() {
-		try {
-			currentProcess.exitValue();
-			return true;
-		} catch (IllegalThreadStateException e) {
-			return false;
-		}
-	}
+  public boolean hasTerminated() {
+    try {
+      currentProcess.exitValue();
+      return true;
+    } catch (IllegalThreadStateException e) {
+      return false;
+    }
+  }
 
   /**
    * Returns the stdout from the command as a String
@@ -96,11 +90,9 @@ public class ManagedCommandline extends EnvCommandline {
   }
 
   /**
-   * Returns the stdout from the command as a List of Strings where each String
-   * is one line of the output.
+   * Returns the stdout from the command as a List of Strings where each String is one line of the output.
    * 
-   * @return The standard output of the command as a <code>List</code> of output
-   *         lines.
+   * @return The standard output of the command as a <code>List</code> of output lines.
    */
   public List<String> getStdoutAsList() {
     return stdOutGobbler != null ? stdOutGobbler.getStreamDataAsList() : null;
@@ -116,11 +108,9 @@ public class ManagedCommandline extends EnvCommandline {
   }
 
   /**
-   * Returns the stderr from the command as a List of Strings where each String
-   * is one line of the error.
+   * Returns the stderr from the command as a List of Strings where each String is one line of the error.
    * 
-   * @return The standard error of the command as a <code>List</code> of output
-   *         lines.
+   * @return The standard error of the command as a <code>List</code> of output lines.
    */
   public List<String> getStderrAsList() {
     return stdErrGobbler != null ? stdErrGobbler.getStreamDataAsList() : null;
@@ -135,8 +125,7 @@ public class ManagedCommandline extends EnvCommandline {
   }
 
   /**
-   * Clear out the arguments and stored command output, but leave the executable
-   * in place for another operation.
+   * Clear out the arguments and stored command output, but leave the executable in place for another operation.
    */
   public void clearArgs() {
     currentProcess = null;
@@ -163,12 +152,13 @@ public class ManagedCommandline extends EnvCommandline {
     return currentProcess;
   }
 
-    public Process getProcess() {
-    	return currentProcess;
-    }
-    
+  public Process getProcess() {
+    return currentProcess;
+  }
+
   public Process waitForProcessFinished() throws IOException, IllegalStateException {
-    if (currentProcess == null) throw new IllegalStateException("No running process");
+    if (currentProcess == null)
+      throw new IllegalStateException("No running process");
 
     // Wait for the command to complete
     try {
@@ -194,8 +184,7 @@ public class ManagedCommandline extends EnvCommandline {
      * Create a StreamGobbler.
      * 
      * @param inputStream The stream to read from.
-     * @param name The name of this StreamReaderThread, which is useful for
-     *          debugging.
+     * @param name The name of this StreamReaderThread, which is useful for debugging.
      */
     StreamGobbler(InputStream inputStream, String name) {
       super(name);
@@ -239,12 +228,12 @@ public class ManagedCommandline extends EnvCommandline {
       while ((line = lineByLineReader.readLine()) != null) {
         if (streamLogsToLogging) {
           logger.info(getName() + "> " + line);
-          
-        } else  if (streamLogsToLoggingAndSaved) {
+
+        } else if (streamLogsToLoggingAndSaved) {
           logger.info(getName() + "> " + line);
           streamDataAsStringBuilder.append(line + LINE_SEPARATOR);
           streamDataAsList.add(line);
-        
+
         } else {
           streamDataAsStringBuilder.append(line + LINE_SEPARATOR);
           streamDataAsList.add(line);
@@ -273,10 +262,10 @@ public class ManagedCommandline extends EnvCommandline {
 
         if (streamLogsToLogging) {
           logger.info(getName() + "> " + new String(chars));
-        } else  if (streamLogsToLoggingAndSaved) {
-            logger.info(getName() + "> " + new String(chars));
-            streamDataAsStringBuilder.append(chars, 0, length);
-            streamDataAsList.add(new String(chars));
+        } else if (streamLogsToLoggingAndSaved) {
+          logger.info(getName() + "> " + new String(chars));
+          streamDataAsStringBuilder.append(chars, 0, length);
+          streamDataAsList.add(new String(chars));
         } else {
           streamDataAsStringBuilder.append(chars, 0, length);
           streamDataAsList.add(new String(chars));
@@ -299,22 +288,22 @@ public class ManagedCommandline extends EnvCommandline {
   }
 
   public boolean isStreamLogsToLogging() {
-	  return streamLogsToLogging;
+    return streamLogsToLogging;
   }
 
   public void setStreamLogsToLogging(boolean streamLogsToLogging) {
-	  this.streamLogsToLogging = streamLogsToLogging;
+    this.streamLogsToLogging = streamLogsToLogging;
   }
 
   public boolean isStreamLogsToLoggingAndSaved() {
-	  return streamLogsToLoggingAndSaved;
+    return streamLogsToLoggingAndSaved;
   }
 
   public void setStreamLogsToLoggingAndSaved(boolean streamLogsToLoggingAndSaved) {
-	  this.streamLogsToLoggingAndSaved = streamLogsToLoggingAndSaved;
+    this.streamLogsToLoggingAndSaved = streamLogsToLoggingAndSaved;
   }
 
-public void setEnv(Map<String, String> env) {
+  public void setEnv(Map<String, String> env) {
     for (String key : env.keySet()) {
       setVariable(key, env.get(key));
     }
