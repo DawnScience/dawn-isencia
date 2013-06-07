@@ -1,0 +1,107 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
+    "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
+<entity name="HelloWithTransformer" class="com.isencia.passerelle.model.Flow">
+    <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="7.0.1">
+    </property>
+    <property name="Passerelle ET" class="com.isencia.passerelle.domain.et.ETDirector">
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{110, 65}">
+        </property>
+    </property>
+    <entity name="Constant" class="com.isencia.passerelle.actor.general.Const">
+        <property name="value" class="ptolemy.data.expr.StringParameter" value="Hello world">
+        </property>
+        <property name="_controllerFactory" class="com.isencia.passerelle.actor.gui.PasserelleActorControllerFactory">
+        </property>
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[110.0, 135.0]">
+        </property>
+    </entity>
+    <entity name="Tracer Console" class="com.isencia.passerelle.actor.general.TracerConsole">
+        <property name="PassThrough" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="Chop output at #chars" class="ptolemy.data.expr.Parameter" value="800">
+        </property>
+        <property name="_controllerFactory" class="com.isencia.passerelle.actor.gui.PasserelleActorControllerFactory">
+        </property>
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[630.0, 155.0]">
+        </property>
+    </entity>
+    <entity name="AddRemoveMessageHeader" class="com.isencia.passerelle.actor.examples.AddRemoveMessageHeader">
+        <property name="Header name" class="ptolemy.data.expr.StringParameter" value="MyHeader">
+        </property>
+        <property name="Header value" class="ptolemy.data.expr.StringParameter" value="something">
+        </property>
+        <property name="_controllerFactory" class="com.isencia.passerelle.actor.gui.PasserelleActorControllerFactory">
+        </property>
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[250.0, 145.0]">
+        </property>
+    </entity>
+    <entity name="Error Console" class="com.isencia.passerelle.actor.general.ErrorConsole">
+        <property name="PassThrough" class="ptolemy.data.expr.Parameter" value="true">
+        </property>
+        <property name="Chop output at #chars" class="ptolemy.data.expr.Parameter" value="800">
+        </property>
+        <property name="_controllerFactory" class="com.isencia.passerelle.actor.gui.PasserelleActorControllerFactory">
+        </property>
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[625.0, 245.0]">
+        </property>
+    </entity>
+    <entity name="HeaderFilter" class="com.isencia.passerelle.actor.examples.HeaderFilter">
+        <property name="Name for match output" class="ptolemy.data.expr.StringParameter" value="hasMyHeader">
+        </property>
+        <property name="Name for noMatch output" class="ptolemy.data.expr.StringParameter" value="missesMyHeader">
+        </property>
+        <property name="_controllerFactory" class="com.isencia.passerelle.actor.gui.PasserelleActorControllerFactory">
+        </property>
+        <property name="_editorFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorFactory">
+        </property>
+        <property name="_editorPaneFactory" class="com.isencia.passerelle.actor.gui.PasserelleEditorPaneFactory">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[395.0, 175.0]">
+        </property>
+    </entity>
+    <relation name="relation" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation_3" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation_2" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <relation name="relation_4" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
+    <link port="Constant.output" relation="relation"/>
+    <link port="Tracer Console.input" relation="relation_2"/>
+    <link port="AddRemoveMessageHeader.input" relation="relation"/>
+    <link port="AddRemoveMessageHeader.output" relation="relation_3"/>
+    <link port="Error Console.input" relation="relation_4"/>
+    <link port="HeaderFilter.input" relation="relation_3"/>
+    <link port="HeaderFilter.match" relation="relation_2"/>
+    <link port="HeaderFilter.noMatch" relation="relation_4"/>
+</entity>
