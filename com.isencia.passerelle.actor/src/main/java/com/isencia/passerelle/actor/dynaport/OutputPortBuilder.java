@@ -40,7 +40,7 @@ import com.isencia.passerelle.core.PortFactory;
  * DynamicNamedOutputPortsActor, to allow using it with actors without
  * enforcing any actor class inheritance limitations.
  * </p>
- * @author delerw
+ * @author erwin
  *
  */
 public class OutputPortBuilder extends Attribute {
@@ -54,11 +54,6 @@ public class OutputPortBuilder extends Attribute {
   private Set<String> outputPortNames = new HashSet<String>();
   // this will deliver a secured interface on the available output port names
   private Set<String> outputPortNamesForContainerAccess = Collections.unmodifiableSet(outputPortNames);
-  /**
-   * the containing entity on which output ports must be managed,
-   * typically a Passerelle actor
-   */
-  private Entity container;
 
   /**
    * @param single
@@ -79,9 +74,16 @@ public class OutputPortBuilder extends Attribute {
    */
   public OutputPortBuilder(Entity container, String name) throws IllegalActionException, NameDuplicationException {
     super(container, name);
-    this.container = container;
+//    this.container = container;
   }
   
+  /**
+   * @return the container cast to Entity, to allow easy Port retrieval etc
+   */
+  protected Entity getContainerEntity() {
+    return (Entity) super.getContainer();
+  }
+
   /**
    * 
    * @return an unmodifiable access to the configured output port names
@@ -103,11 +105,11 @@ public class OutputPortBuilder extends Attribute {
     // Ptolemy's internal port list
     List<Port> ports = new ArrayList<Port>();
     for (String portName : outputPortNames) {
-      Port p = (Port) container.getPort(portName);
+      Port p = (Port) getContainerEntity().getPort(portName);
       if (p != null)
         ports.add(p);
       else {
-        LOGGER.error("{} - internal error - configured port not found with name {}", container.getFullName(), portName);
+        LOGGER.error("{} - internal error - configured port not found with name {}", getContainerEntity().getFullName(), portName);
       }
     }
     return ports;
@@ -117,10 +119,10 @@ public class OutputPortBuilder extends Attribute {
    * @param portNames comma-separated list of port names
    */
   protected void changeOutputPorts(String portNames) {
-    LOGGER.trace("{} - changeOutputPorts() - entry - portNames : {}", container.getFullName(), portNames);
+    LOGGER.trace("{} - changeOutputPorts() - entry - portNames : {}", getContainerEntity().getFullName(), portNames);
     String[] newPortNames = portNames.split(",");
     changeOutputPorts(newPortNames);
-    LOGGER.trace("{} - changeOutputPorts() - exit", container.getFullName());
+    LOGGER.trace("{} - changeOutputPorts() - exit", getContainerEntity().getFullName());
   }
 
   /**
@@ -129,19 +131,19 @@ public class OutputPortBuilder extends Attribute {
   protected void changeOutputPorts(String... portNames) {
     // add this check as the array manipulation is non-negligible
     if(LOGGER.isTraceEnabled())
-      LOGGER.trace("{} - changeOutputPorts() - entry - portNames : {}", container.getFullName(), Arrays.toString(portNames));
+      LOGGER.trace("{} - changeOutputPorts() - entry - portNames : {}", getContainerEntity().getFullName(), Arrays.toString(portNames));
     Set<String> previousPortNames = new HashSet<String>(outputPortNames);
     outputPortNames.clear();
 
     // first add new ports
     for (String portName : portNames) {
-      Port aPort = (Port) container.getPort(portName);
+      Port aPort = (Port) getContainerEntity().getPort(portName);
       if (aPort == null) {
         // create a new one
         try {
           createPort(portName);
         } catch (IllegalActionException e) {
-          LOGGER.error("{} - internal error - failed to create port with name {}", container.getFullName(), portName);
+          LOGGER.error("{} - internal error - failed to create port with name {}", getContainerEntity().getFullName(), portName);
         }
       }
       previousPortNames.remove(portName);
@@ -150,12 +152,12 @@ public class OutputPortBuilder extends Attribute {
     // then remove removed ports, based on remaining names in the old port names list
     for (String portName : previousPortNames) {
       try {
-        container.getPort(portName).setContainer(null);
+        getContainerEntity().getPort(portName).setContainer(null);
       } catch (Exception e) {
-        LOGGER.error("{} - internal error - failed to remove port with name {}", container.getFullName(), portName);
+        LOGGER.error("{} - internal error - failed to remove port with name {}", getContainerEntity().getFullName(), portName);
       }
     }
-    LOGGER.trace("{} - changeOutputPorts() - exit", container.getFullName());
+    LOGGER.trace("{} - changeOutputPorts() - exit", getContainerEntity().getFullName());
   }
 
   /**
@@ -166,23 +168,23 @@ public class OutputPortBuilder extends Attribute {
    * or the port creation fails for another reason. 
    */
   protected Port createPort(String portName) throws IllegalActionException {
-    LOGGER.trace("{} - createPort() - entry - name : {}", container.getFullName(), portName);
+    LOGGER.trace("{} - createPort() - entry - name : {}", getContainerEntity().getFullName(), portName);
     
     Port aPort = null;
     try {
-      aPort = (Port) container.getPort(portName);
+      aPort = (Port) getContainerEntity().getPort(portName);
 
       if (aPort == null) {
-        LOGGER.debug("{} - createPort() - port {} will be constructed", container.getFullName(), portName);
-        aPort = PortFactory.getInstance().createOutputPort(container, portName);
+        LOGGER.debug("{} - createPort() - port {} will be constructed", getContainerEntity().getFullName(), portName);
+        aPort = PortFactory.getInstance().createOutputPort(getContainerEntity(), portName);
         aPort.setMultiport(!singleport);
       } else {
-        throw new IllegalActionException(container, "port " + portName + " already exists");
+        throw new IllegalActionException(getContainerEntity(), "port " + portName + " already exists");
       }
     } catch (Exception e) {
       throw new IllegalActionException(this, e, "failed to create port " + portName);
     }
-    LOGGER.trace("{} - createPort() - exit - port : {}", container.getFullName(), portName);
+    LOGGER.trace("{} - createPort() - exit - port : {}", getContainerEntity().getFullName(), portName);
     return aPort;
   }
 }

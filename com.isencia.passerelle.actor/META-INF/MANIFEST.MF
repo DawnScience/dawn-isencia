@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Passerelle Actor Plug-in
 Bundle-SymbolicName: com.isencia.passerelle.actor
-Bundle-Version: 8.3.2.qualifier
+Bundle-Version: 8.4.0.qualifier
 Bundle-Activator: com.isencia.passerelle.actor.activator.Activator
 Bundle-Vendor: isencia
 Eclipse-RegisterBuddy: ptolemy.core
@@ -18,10 +18,12 @@ Import-Package: com.isencia.message;version="8.3.0",
  com.isencia.message.requestreply;version="8.3.0",
  com.isencia.passerelle.actor;version="8.3.0",
  com.isencia.passerelle.actor.gui;version="8.3.0",
+ com.isencia.passerelle.actor.v3;version="8.3.0",
  com.isencia.passerelle.actor.v5;version="8.3.0",
  com.isencia.passerelle.core;version="8.3.0",
  com.isencia.passerelle.domain.cap;version="8.3.0",
  com.isencia.passerelle.ext;version="8.3.0",
+ com.isencia.passerelle.ext.impl;version="8.3.0",
  com.isencia.passerelle.message;version="8.3.0",
  com.isencia.passerelle.message.interceptor;version="8.3.0",
  com.isencia.passerelle.message.internal;version="8.3.0",
@@ -55,8 +57,10 @@ Import-Package: com.isencia.message;version="8.3.0",
  ptolemy.kernel.util;version="7.0.1",
  ptolemy.moml;version="7.0.1"
 Require-Bundle: org.apache.xerces;bundle-version="2.9.0",
- org.apache.xml.serializer;bundle-version="2.7.1"
-Export-Package: com.isencia.passerelle.actor.control;version="8.3.0",
+ org.apache.xml.serializer;bundle-version="2.7.1",
+ com.isencia.passerelle.engine
+Export-Package: com.isencia.passerelle.actor.advanced;version="8.3.0",
+ com.isencia.passerelle.actor.control;version="8.3.0",
  com.isencia.passerelle.actor.convert;version="8.3.0",
  com.isencia.passerelle.actor.dynaport;version="8.3.0",
  com.isencia.passerelle.actor.eip;version="8.3.0",
