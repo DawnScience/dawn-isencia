@@ -9,6 +9,6 @@
   </parent>
   <groupId>com.isencia.passerelle</groupId>
   <artifactId>com.isencia.passerelle.project.repository.api</artifactId>
-  <version>8.3.0</version>
+  <version>8.3.1</version>
   <packaging>eclipse-plugin</packaging>
 </project>

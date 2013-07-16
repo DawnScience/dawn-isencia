@@ -25,31 +25,31 @@ public class ErrorCode extends Enumerated<ErrorCode> {
   private static final char TOPIC_SEPARATOR = '/';
   private static final Pattern CODE_FORMAT_PATTERN = Pattern.compile("\\d{4}");
 
-  public static final ErrorCode INFO = new ErrorCode("INFO", "9997", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.INFO, "");
-  public static final ErrorCode ERROR = new ErrorCode("ERROR", "9998", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Undefined error");
-  public static final ErrorCode FATAL = new ErrorCode("FATAL", "9999", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.FATAL, "Undefined fatal error");
-  public static final ErrorCode ERROR_PROCESSING_FAILURE = new ErrorCode("ERROR_PROCESSING_FAILURE", "9900", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Error processing a previous error");
-  public static final ErrorCode SYSTEM_CONFIGURATION_ERROR = new ErrorCode("SYSTEM_CONFIGURATION_ERROR", "9908", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "System configuration error");
-  public static final ErrorCode SYSTEM_CONFIGURATION_FATAL = new ErrorCode("SYSTEM_CONFIGURATION_FATAL", "9909", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.FATAL, "System configuration fatal error");
+  public static final ErrorCode INFO = new ErrorCode("INFO", "9997", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.INFO, "");
+  public static final ErrorCode ERROR = new ErrorCode("ERROR", "9998", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Undefined error");
+  public static final ErrorCode FATAL = new ErrorCode("FATAL", "9999", ErrorCategory.TECHNICAL, ErrorCode.Severity.FATAL, "Undefined fatal error");
+  public static final ErrorCode ERROR_PROCESSING_FAILURE = new ErrorCode("ERROR_PROCESSING_FAILURE", "9900", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error processing a previous error");
+  public static final ErrorCode SYSTEM_CONFIGURATION_ERROR = new ErrorCode("SYSTEM_CONFIGURATION_ERROR", "9908", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "System configuration error");
+  public static final ErrorCode SYSTEM_CONFIGURATION_FATAL = new ErrorCode("SYSTEM_CONFIGURATION_FATAL", "9909", ErrorCategory.TECHNICAL, ErrorCode.Severity.FATAL, "System configuration fatal error");
 
-  public static final ErrorCode MSG_CONSTRUCTION_ERROR = new ErrorCode("MSG_CONSTRUCTION_ERROR", "0100", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Message construction error");
-  public static final ErrorCode MSG_DELIVERY_FAILURE = new ErrorCode("MSG_DELIVERY_FAILURE", "0110", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Message delivery failure");
-  public static final ErrorCode MSG_CONTENT_TYPE_ERROR = new ErrorCode("MSG_CONTENT_TYPE_ERROR", "0190", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.ERROR, "Message contents are not of correct type");
+  public static final ErrorCode MSG_CONSTRUCTION_ERROR = new ErrorCode("MSG_CONSTRUCTION_ERROR", "0100", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Message construction error");
+  public static final ErrorCode MSG_DELIVERY_FAILURE = new ErrorCode("MSG_DELIVERY_FAILURE", "0110", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Message delivery failure");
+  public static final ErrorCode MSG_CONTENT_TYPE_ERROR = new ErrorCode("MSG_CONTENT_TYPE_ERROR", "0190", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Message contents are not of correct type");
 
-  public static final ErrorCode ACTOR_INITIALISATION_ERROR = new ErrorCode("ACTOR_INITIALISATION_ERROR", "0210", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.ERROR, "Actor initialisation failed");
-  public static final ErrorCode ACTOR_EXECUTION_ERROR = new ErrorCode("ACTOR_EXECUTION_ERROR", "0220", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.ERROR, "Error in Actor execution");
-  public static final ErrorCode ACTOR_EXECUTION_FATAL = new ErrorCode("ACTOR_EXECUTION_FATAL", "0229", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.FATAL, "Fatal error in Actor execution");
+  public static final ErrorCode ACTOR_INITIALISATION_ERROR = new ErrorCode("ACTOR_INITIALISATION_ERROR", "0210", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Actor initialisation failed");
+  public static final ErrorCode ACTOR_EXECUTION_ERROR = new ErrorCode("ACTOR_EXECUTION_ERROR", "0220", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Error in Actor execution");
+  public static final ErrorCode ACTOR_EXECUTION_FATAL = new ErrorCode("ACTOR_EXECUTION_FATAL", "0229", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.FATAL, "Fatal error in Actor execution");
 
-  public static final ErrorCode FLOW_LOADING_ERROR = new ErrorCode("FLOW_LOADING_ERROR", "0300", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Error loading Flow");
-  public static final ErrorCode FLOW_VALIDATION_WARNING = new ErrorCode("FLOW_VALIDATION_WARNING", "0310", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.WARNING, "Warning validating Flow");
-  public static final ErrorCode FLOW_VALIDATION_ERROR = new ErrorCode("FLOW_VALIDATION_ERROR", "0311", ErrorCategory.PASS_FUNCTIONAL, ErrorCode.Severity.ERROR, "Error validating Flow");
-  public static final ErrorCode FLOW_CONFIGURATION_ERROR = new ErrorCode("FLOW_CONFIGURATION_ERROR", "0320", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Error configuring Flow");
-  public static final ErrorCode FLOW_EXECUTION_ERROR = new ErrorCode("FLOW_EXECUTION_ERROR", "0330", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Error executing Flow");
-  public static final ErrorCode FLOW_EXECUTION_FATAL = new ErrorCode("FLOW_EXECUTION_FATAL", "0339", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Fatal error executing Flow");
-  public static final ErrorCode FLOW_STATE_ERROR = new ErrorCode("FLOW_STATE_ERROR", "0390", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Internal state error in Flow");
+  public static final ErrorCode FLOW_LOADING_ERROR = new ErrorCode("FLOW_LOADING_ERROR", "0300", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error loading Flow");
+  public static final ErrorCode FLOW_VALIDATION_WARNING = new ErrorCode("FLOW_VALIDATION_WARNING", "0310", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.WARNING, "Warning validating Flow");
+  public static final ErrorCode FLOW_VALIDATION_ERROR = new ErrorCode("FLOW_VALIDATION_ERROR", "0311", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Error validating Flow");
+  public static final ErrorCode FLOW_CONFIGURATION_ERROR = new ErrorCode("FLOW_CONFIGURATION_ERROR", "0320", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error configuring Flow");
+  public static final ErrorCode FLOW_EXECUTION_ERROR = new ErrorCode("FLOW_EXECUTION_ERROR", "0330", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error executing Flow");
+  public static final ErrorCode FLOW_EXECUTION_FATAL = new ErrorCode("FLOW_EXECUTION_FATAL", "0339", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Fatal error executing Flow");
+  public static final ErrorCode FLOW_STATE_ERROR = new ErrorCode("FLOW_STATE_ERROR", "0390", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Internal state error in Flow");
 
-  public static final ErrorCode RUNTIME_COMMUNICATION_ERROR = new ErrorCode("RUNTIME_COMMUNICATION_ERROR", "0900", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.ERROR, "Error communicating with runtime");
-  public static final ErrorCode RUNTIME_PERFORMANCE_INFO = new ErrorCode("RUNTIME_PERFORMANCE_INFO", "0920", ErrorCategory.PASS_TECHNICAL, ErrorCode.Severity.INFO, "Performance issue in runtime");
+  public static final ErrorCode RUNTIME_COMMUNICATION_ERROR = new ErrorCode("RUNTIME_COMMUNICATION_ERROR", "0900", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error communicating with runtime");
+  public static final ErrorCode RUNTIME_PERFORMANCE_INFO = new ErrorCode("RUNTIME_PERFORMANCE_INFO", "0920", ErrorCategory.TECHNICAL, ErrorCode.Severity.INFO, "Performance issue in runtime");
 
   public static enum Severity {
     INFO, WARNING, ERROR, FATAL;

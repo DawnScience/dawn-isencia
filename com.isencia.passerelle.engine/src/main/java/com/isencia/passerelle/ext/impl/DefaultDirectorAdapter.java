@@ -20,10 +20,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.actor.Actor;
@@ -39,6 +38,8 @@ import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.ext.ConfigurationExtender;
 import com.isencia.passerelle.ext.DirectorAdapter;
@@ -61,18 +62,18 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
    * The collection of parameters that are meant to be available to a model configurer tool. The actor's parameters that are not in this collection are not
    * meant to be configurable, but are only meant to be used during model assembly (in addition to the public ones).
    */
-  private Collection<Parameter> configurableParameters = new HashSet<Parameter>();
+  private Collection<Parameter> configurableParameters;
 
   /**
    * The collection of listeners for FiringEvents. If the collection is empty, no events are generated. If non-empty, inside the ProcessThread.run(), lots of
    * events are generated for each transition in the iteration of an actor.
    */
-  private Collection<FiringEventListener> firingEventListeners = Collections.synchronizedSet(new HashSet<FiringEventListener>());
+  private Collection<FiringEventListener> firingEventListeners;
 
   /**
    * The collection of error collectors, to which the Director forwards any reported errors. If the collection is empty, reported errors are logged.
    */
-  private Collection<ErrorCollector> errorCollectors = Collections.synchronizedSet(new HashSet<ErrorCollector>());
+  private Collection<ErrorCollector> errorCollectors;
 
   private DefaultExecutionControlStrategy execCtrlStrategy = new DefaultExecutionControlStrategy();
   private ExecutionPrePostProcessor execPrePostProcessor = new DefaultExecutionPrePostProcessor();
@@ -80,11 +81,11 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
   private ErrorControlStrategy errorCtrlStrategy = new DefaultActorErrorControlStrategy();
   private boolean enforcedErrorCtrlStrategy;
 
-  public Parameter stopForUnhandledErrorParam = null;
-  public Parameter mockModeParam = null;
-  public Parameter expertModeParam = null;
-  public Parameter validateInitializationParam = null;
-  public Parameter validateIterationParam = null;
+  private Parameter stopForUnhandledErrorParam = null;
+  private Parameter mockModeParam = null;
+  private Parameter expertModeParam = null;
+  private Parameter validateInitializationParam = null;
+  private Parameter validateIterationParam = null;
 
   // Need some collection to maintain info about busy tasks
   // i.e. for slow actions done by actors.
@@ -94,11 +95,11 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
   // be handling several tasks concurrently.
   // The taskHandle could be used to link to any domain-specific task entity.
   // The startTime could be used for internal CEP, timeout mgmt etc.
-  private Map<Object, Actor> busyTaskActors = new ConcurrentHashMap<Object, Actor>();
+  private ConcurrentMap<Object, Actor> busyTaskActors;
 
   // maintains which actors have already indicated that they're no longer
   // participating in the current model execution
-  private Queue<Actor> activeActors = new ConcurrentLinkedQueue<Actor>();
+  private ConcurrentLinkedQueue<Actor> activeActors;
 
   /**
    * @param container
@@ -110,6 +111,8 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
     super(container, name);
     LOGGER = LoggerFactory.getLogger(container.getClass().getName() + "." + this.getClass().getName());
 
+    init();
+    
     if (container.getAttribute(STOP_FOR_UNHANDLED_ERROR_PARAM) != null) {
       stopForUnhandledErrorParam = (Parameter) container.getAttribute(STOP_FOR_UNHANDLED_ERROR_PARAM);
     } else {
@@ -118,7 +121,7 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
       new CheckBoxStyle(stopForUnhandledErrorParam, "style");
       registerConfigurableParameter(stopForUnhandledErrorParam);
     }
-    
+
     if (container.getAttribute(MOCKMODE_PARAM) != null) {
       mockModeParam = (Parameter) container.getAttribute(MOCKMODE_PARAM);
     } else {
@@ -155,6 +158,21 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
       registerConfigurableParameter(validateIterationParam);
     }
   }
+  
+  protected void init() {
+    configurableParameters = new HashSet<Parameter>();
+    firingEventListeners = Collections.synchronizedSet(new HashSet<FiringEventListener>());
+    errorCollectors = Collections.synchronizedSet(new HashSet<ErrorCollector>());
+    busyTaskActors = new ConcurrentHashMap<Object, Actor>();
+    activeActors = new ConcurrentLinkedQueue<Actor>();
+  }
+
+  @Override
+  public Object clone(Workspace workspace) throws CloneNotSupportedException {
+    DefaultDirectorAdapter clonedAdapter = (DefaultDirectorAdapter)  super.clone(workspace);
+    clonedAdapter.init();
+    return clonedAdapter;
+  }
 
   public void addErrorCollector(ErrorCollector errCollector) {
     if (errCollector != null) {
@@ -185,9 +203,9 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
           }
         } else {
           LOGGER.error("reportError() - no errorCollectors but received exception", e);
-          Manager manager = ((CompositeActor)toplevel()).getManager();
+          Manager manager = ((CompositeActor) toplevel()).getManager();
           manager.notifyListenersOfException(e);
-          if(isStopForUnhandledError()) {
+          if (isStopForUnhandledError()) {
             manager.finish();
           }
         }
@@ -309,7 +327,7 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
   }
 
   public void notifyFiringEventListeners(FiringEvent event) {
-    if (event != null && event.getDirector().equals(this)) {
+    if (event != null && event.getDirector().equals(getContainer())) {
       synchronized (firingEventListeners) {
         for (Iterator<FiringEventListener> listenerItr = firingEventListeners.iterator(); listenerItr.hasNext();) {
           FiringEventListener listener = listenerItr.next();
@@ -342,7 +360,7 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
   }
 
   public void clearExecutionState() {
-    LOGGER.debug("clearExecutionState()");
+    LOGGER.debug("clearExecutionState() - {}", getFullName());
     busyTaskActors.clear();
     activeActors.clear();
   }
@@ -352,28 +370,51 @@ public class DefaultDirectorAdapter extends Attribute implements DirectorAdapter
   }
 
   public boolean isActorBusy(Actor actor) {
-    return busyTaskActors.values().contains(actor);
+    return busyTaskActors.containsValue(actor);
   }
 
   public void notifyActorStartedTask(Actor actor, Object task) {
+    if (isActorBusy(actor)) {
+      LOGGER.info("notifyActorStartedTask() - Extra task {} passed for busy actor {}", task, actor.getFullName());
+    }
     if (task == null) {
+      LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode() + " - notifyActorStartedTask() - Null task passed for actor {}", actor.getFullName());
       // no task differentiation possible, so just use the actor itself as key
       task = actor;
     }
-    busyTaskActors.put(task, actor);
+    Actor actor2 = busyTaskActors.putIfAbsent(task, actor);
+    if (actor2 != null) {
+      LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode()
+          + " - notifyActorStartedTask() - Task {} passed for actor {}, but already linked with actor {}",
+          new Object[] { task, actor.getFullName(), actor2.getFullName() });
+    } else {
+      LOGGER.debug("notifyActorStartedTask() - Task {} started for actor {}", task, actor.getFullName());
+    }
     // TODO : could be interesting to generate events for this?
     // enqueueEvent(new TaskStartedEvent(task, actor));
   }
 
   public void notifyActorFinishedTask(Actor actor, Object task) throws IllegalArgumentException {
+    if (!isActorBusy(actor)) {
+      LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode() + " - notifyActorFinishedTask() - Task {} passed for non-busy actor {}", task,
+          actor.getFullName());
+    }
     if (task == null) {
+      LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode() + " - notifyActorFinishedTask() - Null task passed for actor {}", actor.getFullName());
       // no task differentiation possible, so just use the actor itself as key
       task = actor;
     }
     if (actor == busyTaskActors.get(task)) {
-      busyTaskActors.remove(task);
+      boolean removed = busyTaskActors.remove(task, actor);
+      if (removed) {
+        LOGGER.debug("notifyActorFinishedTask() - Task {} finished for actor {}", task, actor.getFullName());
+      } else {
+        LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode() + " - notifyActorFinishedTask() - Removal failed for task {} and actor {}", task,
+            actor.getFullName());
+      }
     } else {
-      throw new IllegalArgumentException("Task " + task + "not found for actor " + actor.getFullName());
+      LOGGER.error(ErrorCode.FLOW_STATE_ERROR.getFormattedCode() + " - notifyActorFinishedTask() - Task {} was not linked with actor {}", task,
+          actor.getFullName());
     }
     // TODO : could be interesting to generate events for this?
     // enqueueEvent(new TaskFinishedEvent(task, actor));

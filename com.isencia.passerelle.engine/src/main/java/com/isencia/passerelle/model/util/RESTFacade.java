@@ -98,13 +98,15 @@ public class RESTFacade {
 				String jobId = jobElement.getAttributeValue("id");
 				String jobHREF = jobElement.getAttributeValue("href");
 				String jobName = jobElement.getAttributeValue("name");
-				try {
-					FlowHandle flowHandle = new FlowHandle(new Long(jobId), jobName, new URL(jobHREF));
-					flowHandle.setExecId(execId);
-					flowHandle.setExecResourceLocation(new URL(execHREF));
-					flowHandles.add(flowHandle);
-				} catch (Exception e) {
-					throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Invalid URL " + jobHREF + " in response " + jobHeadersResponse, e);
+				if(jobId!=null && jobName!=null && jobHREF!=null) {
+          try {
+            FlowHandle flowHandle = new FlowHandle(new Long(jobId), jobName, new URL(jobHREF));
+            flowHandle.setExecId(execId);
+            flowHandle.setExecResourceLocation(new URL(execHREF));
+            flowHandles.add(flowHandle);
+          } catch (Exception e) {
+            throw new PasserelleException(ErrorCode.RUNTIME_COMMUNICATION_ERROR, "Invalid URL " + jobHREF + " in response " + jobHeadersResponse, e);
+          }
 				}
 			}
 		}

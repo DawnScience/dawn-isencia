@@ -57,9 +57,8 @@ Import-Package: com.isencia.message;version="8.3.0",
  ptolemy.kernel.util;version="7.0.1",
  ptolemy.moml;version="7.0.1"
 Require-Bundle: org.apache.xerces;bundle-version="2.9.0",
- org.apache.xml.serializer;bundle-version="2.7.1",
- com.isencia.passerelle.engine
-Export-Package: com.isencia.passerelle.actor.advanced;version="8.3.0",
+ org.apache.xml.serializer;bundle-version="2.7.1"
+Export-Package: com.isencia.passerelle.actor.advanced,
  com.isencia.passerelle.actor.control;version="8.3.0",
  com.isencia.passerelle.actor.convert;version="8.3.0",
  com.isencia.passerelle.actor.dynaport;version="8.3.0",

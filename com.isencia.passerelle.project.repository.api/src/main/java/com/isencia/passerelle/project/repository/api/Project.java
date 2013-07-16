@@ -68,4 +68,5 @@ public interface Project {
 	
 	Long getId();
 
+	boolean knowledgeBaseHasFlow(String kbCode);
 }

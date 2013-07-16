@@ -113,4 +113,8 @@ public class FileSystemBasedProject implements Project {
   public Flow getSubModel(String flowCode) {
     return getFlow(flowCode);
   }
+
+  public boolean knowledgeBaseHasFlow(String kbCode) {
+    return false;
+  }
 }

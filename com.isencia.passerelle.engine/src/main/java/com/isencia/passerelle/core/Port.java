@@ -33,6 +33,7 @@ import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Settable;
 import ptolemy.kernel.util.StringAttribute;
+import ptolemy.kernel.util.Workspace;
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.message.MessageBuffer;
 import com.isencia.passerelle.message.MessageProvider;
@@ -135,6 +136,28 @@ public class Port extends TypedIOPort {
     setContainer(container);
   }
   
+  @Override
+  public Object clone(Workspace workspace) throws CloneNotSupportedException {
+    Port port = (Port) super.clone(workspace);
+    port.statistics = new PortStatistics(port);
+    port.modeAttr = null;
+    port.operationalSourcePorts = null;
+    // TODO check what must be done with buffer
+    port.setMode(port.mode);
+    return port;
+  }
+  
+  /**
+   * Allow public access to flag indicating whether this actor 
+   * is currently a "debugging target". I.e. whether DebugListeners are registered,
+   * as is typically the case when a breakpoint has been set for this actor. 
+   * @return true if this actor is part of a debugging configuration, e.g.
+   * a breakpoint has been set for it.
+   */
+  public boolean isDebugged() {
+    return _debugging;
+  }
+
   /**
    * 
    * @return the execution statistics of this port

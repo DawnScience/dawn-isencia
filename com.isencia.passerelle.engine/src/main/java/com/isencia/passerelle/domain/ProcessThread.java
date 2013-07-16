@@ -146,7 +146,6 @@ public class ProcessThread extends ptolemy.actor.process.ProcessThread {
       // where the director might conclude before the
       // call to wrapup() below.
       synchronized (_director) {
-
         try {
           // NOTE: Deadlock risk here if wrapup is done inside
           // a block synchronized on the _director, as it used to be.
@@ -162,11 +161,14 @@ public class ProcessThread extends ptolemy.actor.process.ProcessThread {
         } catch (IllegalActionException e) {
           thrownWhenWrapup = e;
         } finally {
-          // let the director know that the actor has stopped,
-          // this must happen after the wrapup() call
-          _director.removeThread(this);
-          if(_debugging)
+          // Let the director know that this thread stopped.
+          // This must occur after the call to wrapup above.
+          synchronized (_director) {
+              _director.removeThread(this);
+          }
+          if (_debugging) {
             _debug("-- Thread stopped.");
+        }
 
           boolean rethrow = false;
 

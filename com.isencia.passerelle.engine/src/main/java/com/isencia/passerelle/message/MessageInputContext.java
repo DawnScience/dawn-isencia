@@ -85,4 +85,9 @@ public class MessageInputContext {
 	public void addMsg(ManagedMessage inputMsg) {
 		msgQ.offer(inputMsg);
 	}
+
+  @Override
+  public String toString() {
+    return "MessageInputContext [portName=" + portName + ", msgQ=" + msgQ + ", processed=" + processed + "]";
+  }
 }

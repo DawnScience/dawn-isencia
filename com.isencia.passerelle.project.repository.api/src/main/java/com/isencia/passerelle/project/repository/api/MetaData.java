@@ -2,7 +2,19 @@ package com.isencia.passerelle.project.repository.api;
 
 public class MetaData {
 
-  public MetaData(String type,Long id, String description, String name, String comment, String revision) {
+  public MetaData(String name, String path) {
+    super();
+    this.name = name;
+    this.path = path;
+  }
+
+  public MetaData(String type, Long id, String description, String name, String comment, String revision, String path) {
+    this(type, id, description, name, comment, revision);
+    this.path = path;
+
+  }
+
+  public MetaData(String type, Long id, String description, String name, String comment, String revision) {
     super();
     this.id = id;
     this.description = description;
@@ -12,6 +24,16 @@ public class MetaData {
     this.type = type;
   }
 
+  private String type;
+
+  private Long id;
+
+  private String description;
+
+  private String name;
+
+  private String comment;
+
   public String getType() {
     return type;
   }
@@ -20,15 +42,15 @@ public class MetaData {
     this.type = type;
   }
 
-  private String type;
-  
-  private Long id;
+  private String path;
 
-  private String description;
+  public String getPath() {
+    return path;
+  }
 
-  private String name;
-
-  private String comment;
+  public void setPath(String path) {
+    this.path = path;
+  }
 
   public Long getId() {
     return id;

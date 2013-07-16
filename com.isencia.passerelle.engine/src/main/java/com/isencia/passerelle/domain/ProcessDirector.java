@@ -17,10 +17,12 @@ package com.isencia.passerelle.domain;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.actor.Actor;
+import ptolemy.actor.Initializable;
 import ptolemy.actor.process.CompositeProcessDirector;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
@@ -72,6 +74,15 @@ public abstract class ProcessDirector extends CompositeProcessDirector implement
     super(container, name);
   }
   
+  @Override
+  public Object clone(Workspace workspace) throws CloneNotSupportedException {
+    List<Initializable> oldInitializables = this._initializables;
+    this._initializables = null;
+    Object clone = super.clone(workspace);
+    this._initializables = oldInitializables;
+    return clone;
+  }
+
   /**
    * Return the configured DirectorAdapter for the given name.
    * If name is null or <code>DirectorAdapter.DEFAULT_ADAPTER_NAME</code>, and no adapter is present yet,

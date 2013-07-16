@@ -44,25 +44,37 @@ public interface RepositoryService {
 	/**
 	 * 
 	 * @param submodelCode
-	 * @return the flow for the given sequenceCode, or null if not found
+	 * @return the submodel for the given flowCode, or null if not found
 	 */
-	Flow getSubmodel(String sequenceCode);
+	Flow getSubmodel(String flowCode);
 	
 	/**
 	 * 
 	 * @param id
-	 * @return the flow for the given sequenceCode, or null if not found
+	 * @return the flow for the given flowCode, or null if not found
 	 */
 	String getFlowCode(Long id);
 
 	/**
 	 * 
-	 * @param sequenceCode
-	 * @return the flow for the given sequenceCode, or null if not found
+	 * @param flowCode
+	 * @return the flow for the given flowCode, or null if not found
 	 */
-	Flow getFlow(String sequenceCode);
+	Flow getFlow(String flowCode);
 
+	 /**
+   * 
+   * @param flowCode
+   * @return the metadata for the given flow, or null if not found
+   */
   MetaData getFlowMetaData(String flowCode);
+
+  /**
+  * 
+  * @param flowCode
+  * @return the metadata for the given submodel, or null if not found
+  */  
+  MetaData getSubmodelMetaData(String flowCode);
 
 	/**
 	 * 
@@ -96,6 +108,13 @@ public interface RepositoryService {
 	 */
 	String[] getAllPackageCodes();
 
+  /**
+   * 
+   * @return an array of the codes for all submodels in the Repository
+   */  
+  String[] getAllSubmodels();
+	
+	
 	/**
 	 * 
 	 * @param projectCode
@@ -124,8 +143,7 @@ public interface RepositoryService {
   Object getKnowledgeBaseConfiguration();
 
   void commitFlow(Flow flow,String comment)  throws Exception;
-  
-  String[] getAllSubmodels();
+
   
   void createSubmodel(CompositeActor flow);
   
@@ -136,4 +154,6 @@ public interface RepositoryService {
   void setSubmodelFolder(File folder);
   
   File getSubmodelFolder();
+  
+  boolean knowledgeBaseHasFlow(String kbCode);
 }
