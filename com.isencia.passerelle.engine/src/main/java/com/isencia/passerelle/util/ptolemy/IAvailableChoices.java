@@ -12,4 +12,16 @@ public interface IAvailableChoices {
 	 */
 	public Map<String,String> getVisibleChoices();
 
+	
+	public class Stub implements IAvailableChoices {
+
+		public String[] getChoices() {
+			return null;
+		}
+
+		public Map<String, String> getVisibleChoices() {
+			return null;
+		}
+		
+	}
 }
