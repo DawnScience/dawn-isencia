@@ -1184,6 +1184,28 @@ public abstract class Actor extends TypedAtomicActor implements IMessageCreator 
   public Object clone(Workspace workspace) throws CloneNotSupportedException {
     final Actor actor = (Actor) super.clone(workspace);
     actor.expertParameters = new ArrayList<Parameter>();
+    for(Parameter p : this.expertParameters) {
+      try {
+        Parameter clonedP = (Parameter) actor.getAttribute(p.getName(), Parameter.class);
+        if(clonedP!=null) {
+          actor.expertParameters.add(clonedP);
+        }
+      } catch (IllegalActionException e) {
+        getLogger().error("Error cloning expertParameters", e);
+      }
+    }
+    actor.configurableParameters = new ArrayList<Parameter>();
+    for(Parameter p : this.configurableParameters) {
+      try {
+        Parameter clonedP = (Parameter) actor.getAttribute(p.getName(), Parameter.class);
+        if(clonedP!=null) {
+          actor.configurableParameters.add(clonedP);
+        }
+      } catch (IllegalActionException e) {
+        getLogger().error("Error cloning configurableParameters", e);
+      }
+    }
+    
     actor.actorMsgHeaders = new HashMap<String, String>();
     actor.actorMsgHeaders.put(ManagedMessage.SystemHeader.HEADER_SOURCE_REF, actor.getFullName());
 

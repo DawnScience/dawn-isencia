@@ -166,9 +166,10 @@ public class PortHandler {
    * @return a message token received by the handler
    */
   public Token getToken() {
-    LOGGER.trace("{} - getToken() - entry", getName());
+    LOGGER.trace("{} - getToken() - entry", getPort().getFullName());
 
     if (hasNoMoreTokens()) {
+      LOGGER.debug("{} - getToken() - has no more tokens", getPort().getFullName());
       return null;
     }
 
@@ -180,6 +181,7 @@ public class PortHandler {
         if (Token.NIL.equals(token)) {
           // indicates a terminating system
           queue.offer(token);
+          LOGGER.debug("{} - getToken() - got a termination token {}", getPort().getFullName(), token);
           token = null;
         }
       } catch (InterruptedException e) {
@@ -189,7 +191,7 @@ public class PortHandler {
       // just read the port directly
       token = readTokenFromPort();
     }
-    LOGGER.trace("{} - getToken() - exit - token : {} ", getName(), token);
+    LOGGER.trace("{} - getToken() - exit - token : {} ", getPort().getFullName(), token);
     return token;
   }
 
@@ -207,6 +209,9 @@ public class PortHandler {
           }
         }
       } catch (Exception e) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug(getPort().getFullName()+" - readTokenFromPort() exception", e);
+        }
         channelIsDead = true;
       }
       if (channelIsDead) {
