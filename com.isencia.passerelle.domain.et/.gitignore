@@ -1,0 +1,7 @@
+# ignore build output
+/target/classes
+
+# ignore backup and temporary files
+*~
+*.tmp
+*.bak
