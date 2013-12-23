@@ -26,7 +26,10 @@ public class Activator implements BundleActivator {
   private ServiceRegistration apSvcReg;
   
   public void start(BundleContext context) throws Exception {
-    apSvcReg = context.registerService(ModelElementClassProvider.class.getName(), new DefaultModelElementClassProvider(ETDirector.class), null);
+//    DANWCI-811: I have temporarily commented out the service registartion for
+//	  this bundle as it creates problems the first time a workflow is executed in
+//	  a workspace.
+//    apSvcReg = context.registerService(ModelElementClassProvider.class.getName(), new DefaultModelElementClassProvider(ETDirector.class), null);
 
   }
 
