@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="com.isencia.passerelle.engine.actorGroups">
+      <actorgroup
+            id="org.dawnsci.passerelle.parallel.actors"
+            name="org.dawnsci.passerelle.parallel.actors"
+            open="false">
+      </actorgroup>
+   </extension>
+   <extension
+         point="com.isencia.passerelle.engine.actors">
+      <actor
+            class="org.dawnsci.passerelle.parallel.actor.ParallelWorkflowExecutor"
+            group="org.dawnsci.passerelle.parallel.actors"
+            icon="icons/parallel_run_wf.gif"
+            id="org.dawnsci.passerelle.parallel.actor.ParallelWorkflowExecutor"
+            name="ParallelWorkflowExecutor">
+      </actor>
+   </extension>
+
+</plugin>
