@@ -7,7 +7,7 @@ Bundle-Vendor: iSencia
 Import-Package: com.isencia.util;version="8.3.0",
  javax.activation,
  javax.mail,
- org.slf4j;version="1.5.0",
+ org.slf4j;version="[1.7.5,1.7.6)",
  sun.io;resolution:=optional
 Require-Bundle: org.apache.commons.net;bundle-version="1.4.1"
 Export-Package: com.isencia.message;version="8.3.0",
