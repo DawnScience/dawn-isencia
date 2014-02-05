@@ -245,74 +245,71 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
   protected boolean doPreFire() throws ProcessingException {
     getLogger().trace("{} - doPreFire() - entry", getFullName());
     boolean readyToFire = super.doPreFire();
-    if (readyToFire) {
-      if (!isSource) {
-        boolean hasBlockingInputs = blockingInputHandlers.size()>0;
-        // first read from all blocking inputs
-        for (int i = 0; i < blockingInputHandlers.size(); i++) {
-          PortHandler handler = blockingInputHandlers.get(i);
-          Port _p = (Port) handler.getPort();
-          ManagedMessage msg = null;
-          // If a port is exhausted, we just pass a null msg to the request.
-          // If not, we try to read another msg from it.
-          // A null msg indicates that the port is exhausted.
-          if (!blockingInputFinishRequests.get(_p).booleanValue()) {
-            // For the moment, we only read at most one msg per PULL input port.
-            // Remark that for an event-driven domain, it is possible that preFire()
-            // is invoked repetitively before a fire() is possible.
-            // Msg streams should be handled via PUSH ports.
-            if (currentProcessRequest.getMessage(_p) == null) {
-              boolean portHasMsg = false;
-              boolean portExhausted = false;
-              try {
-                Token token = handler.getToken();
-                portHasMsg = (token != null) && (token != Token.NIL);
-                portExhausted = (token == null);
-                if (portHasMsg) {
-                  msg = MessageHelper.getMessageFromToken(token);
-                  currentProcessRequest.addInputMessage(0, _p.getName(), msg);
-                } else {
-                  // all blocking/PULL ports must have received a message before we can fire
-                  readyToFire = false;
-                }
-              } catch (ProcessingException e) {
-                throw e;
-              } catch (PasserelleException e) {
-                throw new ProcessingException(ErrorCode.FLOW_EXECUTION_ERROR, "Error getting message from input", _p, e);
+    if (readyToFire && !isSource) {
+      // first read from all blocking inputs
+      for (int i = 0; i < blockingInputHandlers.size(); i++) {
+        PortHandler handler = blockingInputHandlers.get(i);
+        Port _p = (Port) handler.getPort();
+        ManagedMessage msg = null;
+        // If a port is exhausted, we just pass a null msg to the request.
+        // If not, we try to read another msg from it.
+        // A null msg indicates that the port is exhausted.
+        if (!blockingInputFinishRequests.get(_p).booleanValue()) {
+          // For the moment, we only read at most one msg per PULL input port.
+          // Remark that for an event-driven domain, it is possible that preFire()
+          // is invoked repetitively before a fire() is possible.
+          // Msg streams should be handled via PUSH ports.
+          if (currentProcessRequest.getMessage(_p) == null) {
+            boolean portHasMsg = false;
+            boolean portExhausted = false;
+            try {
+              Token token = handler.getToken();
+              portHasMsg = (token != null) && (token != Token.NIL);
+              portExhausted = (token == null);
+              if (portHasMsg) {
+                msg = MessageHelper.getMessageFromToken(token);
+                currentProcessRequest.addInputMessage(0, _p.getName(), msg);
+              } else {
+                // all blocking/PULL ports must have received a message before we can fire
+                readyToFire = false;
               }
-              if (portExhausted) {
-                blockingInputFinishRequests.put(handler.getPort(), Boolean.TRUE);
-                getLogger().debug("{} - doPreFire() - found exhausted port {} ", getFullName(), handler.getName());
-              } else if (msg != null) {
-                if (getLogger().isDebugEnabled())
-                  getLogger().debug("{} - doPreFire() - msg {} received on port {}", new Object[] { getFullName(), msg.getID(), handler.getName() });
-              }
+            } catch (ProcessingException e) {
+              throw e;
+            } catch (PasserelleException e) {
+              throw new ProcessingException(ErrorCode.FLOW_EXECUTION_ERROR, "Error getting message from input", _p, e);
+            }
+            if (portExhausted) {
+              blockingInputFinishRequests.put(handler.getPort(), Boolean.TRUE);
+              getLogger().debug("{} - doPreFire() - found exhausted port {} ", getFullName(), handler.getName());
+            } else if (msg != null) {
+              if (getLogger().isDebugEnabled())
+                getLogger().debug("{} - doPreFire() - msg {} received on port {}", new Object[] { getFullName(), msg.getID(), handler.getName() });
             }
           }
         }
-        if ((!hasBlockingInputs && !pushedMessages.isEmpty()) || (readyToFire && !msgProviders.isEmpty())) {
-          try {
-            // TODO check if it's not nicer to maintain buffer time from 1st preFire() call
-            // to when readyToFire, i.o. adding it after the time we've already been waiting
-            // for all PULL ports having a message.
-            int bufferTime = ((IntToken) bufferTimeParameter.getToken()).intValue();
-            if (bufferTime > 0) {
-              getLogger().debug("{} - doPreFire() - sleeping for buffer time {}", getFullName(), bufferTime);
-              Thread.sleep(bufferTime);
-            }
-          } catch (Exception e) {
-            getLogger().warn(getFullName() + " - Failed to enforce buffer time", e);
+      }
+      if (readyToFire && (!pushedMessages.isEmpty() || !msgProviders.isEmpty())) {
+        try {
+          // TODO check if it's not nicer to maintain buffer time from 1st preFire() call
+          // to when readyToFire, i.o. adding it after the time we've already been waiting
+          // for all PULL ports having a message.
+          int bufferTime = ((IntToken) bufferTimeParameter.getToken()).intValue();
+          if (bufferTime > 0) {
+            getLogger().debug("{} - doPreFire() - sleeping for buffer time {}", getFullName(), bufferTime);
+            Thread.sleep(bufferTime);
           }
-          // we've got at least one PUSH port that registered a msg provider
-          // so we need to include all pushed msgs in the request as well
-          addPushedMessages(currentProcessRequest);
-          readyToFire = currentProcessRequest.hasSomethingToProcess();
+        } catch (Exception e) {
+          getLogger().warn(getFullName() + " - Failed to enforce buffer time", e);
         }
-        // when all ports are exhausted, we can stop this actor
-        if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && !hasPushedMessages()) {
-          requestFinish();
-          readyToFire = true;
-        }
+        // we've got at least one PUSH port that registered a msg provider
+        // so we need to include all pushed msgs in the request as well
+        addPushedMessages(currentProcessRequest);
+      }
+      readyToFire = readyToFire && currentProcessRequest.hasSomethingToProcess();
+      // when all ports are exhausted, we can stop this actor
+      if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && !hasPushedMessages()) {
+        requestFinish();
+        readyToFire = true;
       }
     }
 
