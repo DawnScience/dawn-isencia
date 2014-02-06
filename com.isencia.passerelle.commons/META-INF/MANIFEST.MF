@@ -7,7 +7,7 @@ Bundle-Vendor: iSencia
 Import-Package: org.jdom;version="1.0.0",
  org.jdom.input;version="1.0.0",
  org.jdom.output;version="1.0.0",
- org.slf4j;version="[1.7.5,1.7.6)"
+ org.slf4j;version="[1.7.6,1.7.7)"
 Export-Package: com.isencia.constants;version="8.3.0",
  com.isencia.properties;version="8.3.0",
  com.isencia.util;version="8.3.0",
