@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DRMAA Executor Test
+Bundle-SymbolicName: org.dawnsci.drmaa.executor.test
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Diamond LS
+Fragment-Host: org.dawnsci.drmaa.executor;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.junit,
+ ch.qos.logback.classic;bundle-version="1.1.1",
+ ch.qos.logback.core;bundle-version="1.1.1"
