@@ -15,17 +15,11 @@
  */
 package org.dawnsci.passerelle.parallel.actor;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-import org.dawb.passerelle.common.message.DataMessageComponent;
-import org.dawb.passerelle.common.message.DataMessageException;
-import org.dawb.passerelle.common.message.MessageUtils;
-import org.dawnsci.passerelle.parallel.actor.activator.Activator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +29,6 @@ import ptolemy.data.type.BaseType;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
-import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
-import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.ValidationException;
