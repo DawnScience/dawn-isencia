@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Diamond Light Source Ltd.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.dawnsci.passerelle.parallel.actor.activator;
 
 import org.dawnsci.passerelle.parallel.actor.ParallelWorkflowExecutor;
@@ -12,39 +27,29 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import com.isencia.passerelle.ext.ModelElementClassProvider;
 import com.isencia.passerelle.ext.impl.DefaultModelElementClassProvider;
-import com.isencia.passerelle.runtime.process.FlowProcessingService;
 import com.isencia.passerelle.runtime.repository.FlowRepositoryService;
 
 public class Activator implements BundleActivator {
 
   static final String FLOWREPOS_SERVICE_FILTER = "(&("+Constants.OBJECTCLASS+"="+FlowRepositoryService.class.getName()+")(type=FILE))";
-  static final String FLOWPROC_SERVICE_FILTER = "("+Constants.OBJECTCLASS+"="+FlowProcessingService.class.getName()+")";
-  
-  static final String FLOWREPOS_MXBEAN_NAME = "com.isencia.passerelle.runtime:type=FlowRepository";
-  static final String FLOWPROCESSOR_MXBEAN_NAME = "com.isencia.passerelle.runtime:type=FlowProcessor";
   
   private static BundleContext context;
   private static Activator instance;
   
   private ServiceTracker<Object, Object> flowRepositorySvcTracker;
-  private ServiceTracker<Object, Object> flowProcessingSvcTracker;
 
   @SuppressWarnings("rawtypes")
   private ServiceRegistration apSvcReg;
 
   private FlowRepositoryService flowRepositorySvc;
-  private FlowProcessingService flowProcessingSvc;
 
   @SuppressWarnings("unchecked")
   public void start(BundleContext bundleContext) throws Exception {
     Activator.context = bundleContext;
     Activator.instance = this;
     Filter reposSvcFilter = context.createFilter(FLOWREPOS_SERVICE_FILTER);
-    Filter processSvcFilter = context.createFilter(FLOWPROC_SERVICE_FILTER);
     flowRepositorySvcTracker = new ServiceTracker<Object, Object>(bundleContext, reposSvcFilter, createSvcTrackerCustomizer());
-    flowProcessingSvcTracker = new ServiceTracker<Object, Object>(bundleContext, processSvcFilter, createSvcTrackerCustomizer());
     flowRepositorySvcTracker.open();
-    flowProcessingSvcTracker.open();
     
     apSvcReg = context.registerService(ModelElementClassProvider.class.getName(), 
         new DefaultModelElementClassProvider(ParallelWorkflowExecutor.class), null);
@@ -53,7 +58,6 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bundleContext) throws Exception {
     apSvcReg.unregister();
     flowRepositorySvcTracker.close();
-    flowProcessingSvcTracker.close();
     Activator.context = null;
     Activator.instance = null;
   }
@@ -66,18 +70,12 @@ public class Activator implements BundleActivator {
     return flowRepositorySvc;
   }
 
-  public FlowProcessingService getFlowProcessingSvc() {
-    return flowProcessingSvc;
-  }
-
   private ServiceTrackerCustomizer<Object, Object> createSvcTrackerCustomizer() {
     return new ServiceTrackerCustomizer<Object, Object>() {
       public void removedService(ServiceReference<Object> ref, Object svc) {
         synchronized (Activator.this) {
           if (svc == Activator.this.flowRepositorySvc) {
             Activator.this.flowRepositorySvc = null;
-          } else if(svc == Activator.this.flowProcessingSvc) {
-            Activator.this.flowProcessingSvc = null;
           } else {
             return;
           }
@@ -93,8 +91,6 @@ public class Activator implements BundleActivator {
         synchronized (Activator.this) {
           if ((svc instanceof FlowRepositoryService) && (Activator.this.flowRepositorySvc == null)) {
             Activator.this.flowRepositorySvc = (FlowRepositoryService) svc;
-          } else if ((svc instanceof FlowProcessingService) && (Activator.this.flowProcessingSvc == null)) {
-            Activator.this.flowProcessingSvc = (FlowProcessingService) svc;
           } 
         }
         return svc;

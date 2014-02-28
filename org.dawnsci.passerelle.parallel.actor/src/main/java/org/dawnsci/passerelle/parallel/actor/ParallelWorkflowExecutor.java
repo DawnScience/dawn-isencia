@@ -15,6 +15,16 @@
  */
 package org.dawnsci.passerelle.parallel.actor;
 
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
+
+import org.dawb.passerelle.common.message.DataMessageComponent;
+import org.dawb.passerelle.common.message.DataMessageException;
+import org.dawb.passerelle.common.message.MessageUtils;
 import org.dawnsci.passerelle.parallel.actor.activator.Activator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +35,8 @@ import ptolemy.data.type.BaseType;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
+import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
+import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 
 import com.isencia.passerelle.actor.ProcessingException;
 import com.isencia.passerelle.actor.ValidationException;
@@ -36,16 +48,13 @@ import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortFactory;
 import com.isencia.passerelle.message.ManagedMessage;
-import com.isencia.passerelle.runtime.ProcessHandle;
-import com.isencia.passerelle.runtime.process.FlowProcessingService;
-import com.isencia.passerelle.runtime.process.FlowProcessingService.StartMode;
+import com.isencia.passerelle.runtime.process.ProcessStatus;
 import com.isencia.passerelle.runtime.repos.impl.filesystem.FlowHandleImpl;
 import com.isencia.passerelle.runtime.repository.VersionSpecification;
 import com.isencia.passerelle.util.ptolemy.FileParameter;
 
 /**
- * This actor can execute another workflow N times in parallel on the available/configured
- * number of CPU cores.
+ * This actor can execute another workflow N times in parallel on the available/configured number of CPU cores.
  * <p>
  * Implementation info : it uses the JDK 7 ForkJoin support.
  * </p>
@@ -107,31 +116,42 @@ public class ParallelWorkflowExecutor extends Actor {
     } catch (Exception e) {
       throw new ValidationException(ErrorCode.ACTOR_INITIALISATION_ERROR, "Unable to obtain " + MAX_PARALLELISM_PARAMNAME, maxParallelismParam, e);
     }
-    try {
-      if (Activator.getInstance().getFlowProcessingSvc() == null) {
-        throw new ValidationException(ErrorCode.ACTOR_INITIALISATION_ERROR, "No Flow processing service found", this, null);
-      }
-    } catch (Exception e) {
-      throw new ValidationException(ErrorCode.ACTOR_INITIALISATION_ERROR, "Unable to obtain Flow processing service", this, e);
-    }
   }
 
   @Override
   protected void process(ActorContext ctxt, ProcessRequest request, ProcessResponse response) throws ProcessingException {
     try {
-      ManagedMessage msg = request.getMessage(input);
+      ManagedMessage message = request.getMessage(input);
+//      DataMessageComponent dataMsgComp = null;
+//      try {
+//        dataMsgComp = MessageUtils.coerceMessage(message);
+//        IMetaData metaData = dataMsgComp.getMeta();
+//        System.out.println(metaData);
+//        
+//        Map<String, Serializable> dataSetMap = dataMsgComp.getList();
+//        System.out.println(dataSetMap);
+//        IDataset ds = (IDataset) dataMsgComp.getList("image");
+//        System.out.println("Shape of the image : "+Arrays.toString(ds.getShape()));
+//
+//        // how to obtain e.g. the paths/names of all images in a dynamic way?
+//        
+//      } catch (Exception e) {
+//        throw new DataMessageException(ErrorCode.ERROR, "Cannot add data", this, message, dataMsgComp, e);
+//      }
+      
       // FlowRepositoryService localReposSvc = Activator.getInstance().getLocalReposSvc();
       FlowHandleImpl subFlowHandle = new FlowHandleImpl("test", modelParam.asFile(), VersionSpecification.parse("1.0.0"));
-      FlowProcessingService flowProcSvc = Activator.getInstance().getFlowProcessingSvc();
-      if(flowProcSvc!=null) {
-        // TODO use ForkJoinPool and tasks etc
-        // TODO find a way to pass data to the subflow
-        ProcessHandle processHandle = flowProcSvc.start(StartMode.RUN, subFlowHandle, null, null, null);
-        getLogger().info("Started {}",processHandle);
-      } else {
-        // should not happen as it was checked during initialization validation
+      ForkJoinPool fjPool = new ForkJoinPool(5);
+      Map<String, String>[] paramOverridesArray = new Map[5];
+      for(int i=0;i<5;++i) {
+        Map<String, String> paramOverrides = new HashMap<>();
+        paramOverrides.put("inputPath", "c:/temp/testinput"+i+".txt");
+        paramOverridesArray[i] = paramOverrides;
       }
-      response.addOutputMessage(output, msg);
+      ModelRunnerTask task = new ModelRunnerTask(subFlowHandle, null, 10, TimeUnit.SECONDS, paramOverridesArray);
+      ProcessStatus processStatus = fjPool.invoke(task);
+      System.out.println(processStatus);
+      response.addOutputMessage(output, message);
     } catch (IllegalActionException e) {
       // should not happen as all params were validated during initialization validation
       throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error getting actor configuration", this, e);

@@ -18,6 +18,15 @@
             id="org.dawnsci.passerelle.parallel.actor.ParallelWorkflowExecutor"
             name="ParallelWorkflowExecutor">
       </actor>
+      <!-- simple file reader for initial trials of parallel workflow executions in DAWN 
+           without using DataMessageComponents yet -->
+      <actor
+            class="com.isencia.passerelle.actor.io.FileReader"
+            group="org.dawnsci.passerelle.parallel.actors"
+            icon="icons/open_file1.gif"
+            id="com.isencia.passerelle.actor.io.FileReader"
+            name="Simple FileReader">
+      </actor>
    </extension>
 
 </plugin>

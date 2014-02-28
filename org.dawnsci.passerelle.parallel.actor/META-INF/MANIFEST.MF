@@ -21,6 +21,7 @@ Import-Package: com.isencia.passerelle.actor;version="8.6.0",
  com.isencia.passerelle.util.ptolemy;version="8.6.0",
  com.isencia.sherpa.commons,
  junit.framework;version="3.8.2",
+ org.dawb.passerelle.common.message,
  org.eclipse.osgi.framework.console;version="1.1.0",
  org.osgi.framework;version="1.7.0",
  org.osgi.util.tracker;version="1.5.1",
@@ -30,5 +31,7 @@ Import-Package: com.isencia.passerelle.actor;version="8.6.0",
  ptolemy.data.expr;version="7.0.1",
  ptolemy.data.type;version="7.0.1",
  ptolemy.kernel;version="7.0.1",
- ptolemy.kernel.util;version="7.0.1"
+ ptolemy.kernel.util;version="7.0.1",
+ uk.ac.diamond.scisoft.analysis.dataset,
+ uk.ac.diamond.scisoft.analysis.io
 Bundle-Activator: org.dawnsci.passerelle.parallel.actor.activator.Activator
