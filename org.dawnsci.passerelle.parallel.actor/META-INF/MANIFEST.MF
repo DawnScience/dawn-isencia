@@ -3,13 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Actors for local parallelism
 Bundle-SymbolicName: org.dawnsci.passerelle.parallel.actor
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.dawn.passerelle.parallel.actor.activator.Activator
+Bundle-Activator: org.dawnsci.passerelle.parallel.actor.activator.Activator
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.isencia.passerelle.actor;version="8.6.0",
  com.isencia.passerelle.actor.v5;version="8.6.0",
  com.isencia.passerelle.core;version="8.6.0",
- com.isencia.passerelle.domain.et;version="8.6.0",
  com.isencia.passerelle.ext;version="8.6.0",
  com.isencia.passerelle.ext.impl;version="8.6.0",
  com.isencia.passerelle.message;version="8.6.0",
@@ -22,7 +21,6 @@ Import-Package: com.isencia.passerelle.actor;version="8.6.0",
  com.isencia.sherpa.commons,
  junit.framework;version="3.8.2",
  org.dawb.passerelle.common.message,
- org.eclipse.osgi.framework.console;version="1.1.0",
  org.osgi.framework;version="1.7.0",
  org.osgi.util.tracker;version="1.5.1",
  org.slf4j;version="[1.7.6,1.7.7)",
@@ -34,4 +32,3 @@ Import-Package: com.isencia.passerelle.actor;version="8.6.0",
  ptolemy.kernel.util;version="7.0.1",
  uk.ac.diamond.scisoft.analysis.dataset,
  uk.ac.diamond.scisoft.analysis.io
-Bundle-Activator: org.dawnsci.passerelle.parallel.actor.activator.Activator
