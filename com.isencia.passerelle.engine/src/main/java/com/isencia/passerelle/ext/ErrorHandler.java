@@ -14,7 +14,7 @@
 */
 package com.isencia.passerelle.ext;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.PasserelleException;
 
 /**
@@ -42,6 +42,6 @@ public interface ErrorHandler {
    * @return true if this handler is taking ownership of the actual error handling.
    * False if the handler does not want to handle it.
    */
-  boolean handleError(NamedObj errorSource, PasserelleException error);
+  boolean handleError(Nameable errorSource, PasserelleException error);
 
 }

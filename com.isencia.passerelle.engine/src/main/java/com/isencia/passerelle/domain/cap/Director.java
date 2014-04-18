@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptolemy.actor.Actor;
 import ptolemy.actor.CompositeActor;
 import ptolemy.actor.Receiver;
 import ptolemy.actor.util.FIFOQueue;
@@ -33,7 +33,10 @@ import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.domain.ProcessDirector;
+import com.isencia.passerelle.message.MessageQueue;
+import com.isencia.passerelle.message.SimpleActorMessageQueue;
 
 /**
  * The standard Passerelle director. Besides the std Ptolemy director stuff,
@@ -54,8 +57,6 @@ public class Director extends ProcessDirector {
 	private File propsFile=null;
 	public FileParameter propsFileParameter;
 	public final static String PROPSFILE_PARAM = "Properties File";
-	
-	private Collection<BlockingQueueReceiver> managedReceivers = new HashSet<BlockingQueueReceiver>();
 	
 	//~ Constructors ___________________________________________________________________________________________________________________________________________
 
@@ -227,7 +228,6 @@ public class Director extends ProcessDirector {
 	 */
 	public Receiver newReceiver() {
 		BlockingQueueReceiver receiver = new BlockingQueueReceiver();
-		managedReceivers .add(receiver);
 		try {
 			receiver.setCapacity(FIFOQueue.INFINITE_CAPACITY);
 		} catch (IllegalActionException e) {
@@ -236,13 +236,19 @@ public class Director extends ProcessDirector {
 		return receiver;
 	}
 
+  @Override
+  public MessageQueue newMessageQueue(Actor actor) throws InitializationException {
+    return new SimpleActorMessageQueue(actor);
+  }
+
+
 	/**
 	 * 
 	 * @return unmodifiable copy of all receivers managed by this Director,
 	 * i.e. of the input ports of the actors in this Director's model.
 	 */
 	public Collection<BlockingQueueReceiver> getManagedReceivers() {
-		return Collections.unmodifiableCollection(managedReceivers);
+		return Collections.emptyList();
 	}
 	
 	/**

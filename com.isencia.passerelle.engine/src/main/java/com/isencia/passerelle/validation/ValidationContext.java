@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.actor.ValidationException;
 
 /**
@@ -31,7 +31,7 @@ import com.isencia.passerelle.actor.ValidationException;
  */
 public class ValidationContext {
 
-  private Map<NamedObj, Set<ValidationException>> errors = new HashMap<NamedObj, Set<ValidationException>>();
+  private Map<Nameable, Set<ValidationException>> errors = new HashMap<Nameable, Set<ValidationException>>();
 
   /**
    * @param e
@@ -56,7 +56,7 @@ public class ValidationContext {
   /**
    * @return all elements with validation errors, as determined during a validation check for this context
    */
-  public Collection<NamedObj> getElementsWithErrors() {
+  public Collection<Nameable> getElementsWithErrors() {
     return Collections.unmodifiableSet(errors.keySet());
   }
 
@@ -65,7 +65,7 @@ public class ValidationContext {
    * @return all validation errors found for the given model element, during a validation check for this context
    * Returns the errors in order from most severe to least severe, and for same severities : ordered by code.
    */
-  public Collection<ValidationException> getErrors(NamedObj validatedElement) {
+  public Collection<ValidationException> getErrors(Nameable validatedElement) {
     return Collections.unmodifiableSet(errors.get(validatedElement));
   }
 

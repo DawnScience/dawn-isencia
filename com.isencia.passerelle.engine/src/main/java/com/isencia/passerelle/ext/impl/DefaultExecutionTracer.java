@@ -17,12 +17,10 @@ package com.isencia.passerelle.ext.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
 import ptolemy.actor.Actor;
 import ptolemy.actor.Director;
 import ptolemy.kernel.util.NamedObj;
-
-import com.isencia.passerelle.domain.ProcessThread;
+import com.isencia.passerelle.domain.cap.ProcessThread;
 import com.isencia.passerelle.ext.ExecutionTracer;
 import com.isencia.passerelle.util.ExecutionTracerService;
 import com.isencia.passerelle.util.Level;

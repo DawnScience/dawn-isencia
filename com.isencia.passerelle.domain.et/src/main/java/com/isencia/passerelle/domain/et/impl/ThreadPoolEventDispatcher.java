@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.isencia.passerelle.domain.et.Event;
+import com.isencia.passerelle.runtime.Event;
 import com.isencia.passerelle.domain.et.EventHandler;
 
 /**

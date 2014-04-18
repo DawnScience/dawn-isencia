@@ -14,7 +14,7 @@
 */
 package com.isencia.passerelle.actor;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.message.ManagedMessage;
 
@@ -54,7 +54,7 @@ public class FilterException extends ProcessingException {
    * @param modelElement
    * @param rootException
    */
-  public FilterException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+  public FilterException(ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(errorCode, message, modelElement, rootException);
   }
   /**
@@ -65,7 +65,7 @@ public class FilterException extends ProcessingException {
    * @param msgContext
    * @param rootException
    */
-  public FilterException(ErrorCode errorCode, String message, NamedObj modelElement, ManagedMessage msgContext, Throwable rootException) {
+  public FilterException(ErrorCode errorCode, String message, Nameable modelElement, ManagedMessage msgContext, Throwable rootException) {
     super(errorCode, message, modelElement, msgContext, rootException);
   }
 }

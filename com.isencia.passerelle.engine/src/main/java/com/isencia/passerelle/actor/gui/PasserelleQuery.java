@@ -299,8 +299,38 @@ public class PasserelleQuery extends ptolemy.actor.gui.PtolemyQuery implements I
 						com.isencia.passerelle.util.ptolemy.FileParameter passerelleFileParameter = (com.isencia.passerelle.util.ptolemy.FileParameter) attribute;
 						fileFilter = passerelleFileParameter.getFilter();
 					}
-					addFileChooser(name, label, attribute.getExpression(), base, directory, fileFilter,
+					if(fileFilter!=null) {
+					  addFileChooser(name, label, attribute.getExpression(), base, directory, fileFilter,
 							preferredBackgroundColor(attribute), preferredForegroundColor(attribute));
+					} else {
+            // Check to see whether the attribute being configured
+            // specifies whether files or directories should be listed.
+            // By default, only files are selectable.
+            boolean allowFiles = true;
+            boolean allowDirectories = false;
+            // attribute is always a NamedObj
+            Parameter marker = (Parameter) ((NamedObj) attribute).getAttribute("allowFiles", Parameter.class);
+            if (marker != null) {
+              Token value = marker.getToken();
+              if (value instanceof BooleanToken) {
+                allowFiles = ((BooleanToken) value).booleanValue();
+              }
+            }
+            marker = (Parameter) ((NamedObj) attribute).getAttribute("allowDirectories", Parameter.class);
+            if (marker != null) {
+              Token value = marker.getToken();
+              if (value instanceof BooleanToken) {
+                allowDirectories = ((BooleanToken) value).booleanValue();
+              }
+            }
+            // FIXME: What to do when neither files nor directories are allowed?
+            if (!allowFiles && !allowDirectories) {
+              // The given attribute will not have a query in the dialog.
+              return;
+            }
+					  addFileChooser(name, label, attribute.getExpression(), base, directory, allowFiles, allowDirectories, 
+					      preferredBackgroundColor(attribute), preferredForegroundColor(attribute));
+					}
 					attachParameter(attribute, name);
 					foundStyle = true;
 				} else if (attribute instanceof DateTimeParameter) {

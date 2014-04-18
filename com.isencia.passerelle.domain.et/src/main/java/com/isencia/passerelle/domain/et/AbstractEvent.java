@@ -14,20 +14,20 @@
 */
 package com.isencia.passerelle.domain.et;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicLong;
+import ptolemy.kernel.util.NamedObj;
+import com.isencia.passerelle.runtime.Event;
+import com.isencia.passerelle.runtime.SimpleEvent;
 
-public abstract class AbstractEvent implements Event {
+public abstract class AbstractEvent extends SimpleEvent {
   
-  private static volatile AtomicLong idCounter = new AtomicLong(0);
+  private static final long serialVersionUID = 6094980381771564552L;
 
-  private Date timeStamp;
-  private long id;
-  
-  protected AbstractEvent(Date timeStamp) {
-    this.timeStamp = timeStamp;
-    this.id = idCounter.incrementAndGet();
+  protected AbstractEvent(NamedObj subject, String topic, Date creationTS) {
+    super(subject, topic, creationTS, 0L);
+    setProperty(SUBJECT, subject.getFullName());
   }
 
   /**
@@ -35,15 +35,14 @@ public abstract class AbstractEvent implements Event {
    * @return a new Event with copied info, but new timestamp
    */
   public abstract Event copy();
-  
 
-  public Date getTimestamp() {
-    return timeStamp;
-  }
-  
-  protected long getId() {
-    return id;
-  }
+  /**
+   * 
+   * @param dateFormat
+   * @return a toString representation of the event, 
+   * where dates are formatted with the given dateFormat.
+   */
+  public abstract String toString(DateFormat dateFormat);
 
   @Override
   public String toString() {

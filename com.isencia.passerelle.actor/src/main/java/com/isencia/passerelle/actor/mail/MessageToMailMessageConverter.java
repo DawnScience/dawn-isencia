@@ -14,6 +14,8 @@
  */
 package com.isencia.passerelle.actor.mail;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.Multipart;
@@ -75,12 +77,19 @@ public class MessageToMailMessageConverter implements IMessageInterceptor {
     String[] toRecipients = managedMsg.getBodyHeader(SMTPSender.TO_HEADER);
     if (toRecipients != null && toRecipients.length > 0) {
       LOGGER.debug("To addresses count : " + toRecipients.length);
-      InternetAddress[] addresses = new InternetAddress[toRecipients.length];
+      List<InternetAddress> addresses = new ArrayList<InternetAddress>();
       for (int i = 0; i < toRecipients.length; i++) {
-        LOGGER.debug("Send to : " + toRecipients[i]);
-        addresses[i] = new InternetAddress(toRecipients[i]);
+        String[] individualToRecipients = toRecipients[i].split(",");
+        for (String individualRecipient : individualToRecipients) {
+          if (individualRecipient.trim().length() > 0) {
+            LOGGER.debug("Send to : " + individualRecipient.trim());
+            addresses.add(new InternetAddress(individualRecipient.trim()));
+          }
+        }
       }
-      mailMessage.setRecipients(javax.mail.Message.RecipientType.TO, addresses);
+      for (InternetAddress rec : addresses) {
+        mailMessage.addRecipient(javax.mail.Message.RecipientType.TO, rec);
+      }
     }
 
     // Set cc addresses
@@ -88,12 +97,19 @@ public class MessageToMailMessageConverter implements IMessageInterceptor {
     String[] ccRecipients = managedMsg.getBodyHeader(SMTPSender.CC_HEADER);
     if (ccRecipients != null && ccRecipients.length > 0) {
       LOGGER.debug("Cc addresses count : " + ccRecipients.length);
-      InternetAddress[] addresses = new InternetAddress[ccRecipients.length];
+      List<InternetAddress> addresses = new ArrayList<InternetAddress>();
       for (int i = 0; i < ccRecipients.length; i++) {
-        LOGGER.debug("Send cc : " + ccRecipients[i]);
-        addresses[i] = new InternetAddress(ccRecipients[i]);
+        String[] individualCcRecipients = ccRecipients[i].split(",");
+        for (String individualCcRecipient : individualCcRecipients) {
+          if (individualCcRecipient.trim().length() > 0) {
+            LOGGER.debug("Send cc : " + individualCcRecipient.trim());
+            addresses.add(new InternetAddress(individualCcRecipient.trim()));
+          }
+        }
       }
-      mailMessage.setRecipients(javax.mail.Message.RecipientType.CC, addresses);
+      for (InternetAddress rec : addresses) {
+        mailMessage.addRecipient(javax.mail.Message.RecipientType.CC, rec);
+      }
     }
 
     // Set bcc addresses
@@ -101,12 +117,19 @@ public class MessageToMailMessageConverter implements IMessageInterceptor {
     String[] bccRecipients = managedMsg.getBodyHeader(SMTPSender.BCC_HEADER);
     if (bccRecipients != null && bccRecipients.length > 0) {
       LOGGER.debug("Bcc addresses count : " + bccRecipients.length);
-      InternetAddress[] addresses = new InternetAddress[bccRecipients.length];
+      List<InternetAddress> addresses = new ArrayList<InternetAddress>();
       for (int i = 0; i < bccRecipients.length; i++) {
-        LOGGER.debug("Send bcc : " + bccRecipients[i]);
-        addresses[i] = new InternetAddress(bccRecipients[i]);
+        String[] individualBccRecipients = bccRecipients[i].split(",");
+        for (String individualBccRecipient : individualBccRecipients) {
+          if (individualBccRecipient.trim().length() > 0) {
+            LOGGER.debug("Send bcc : " + individualBccRecipient.trim());
+            addresses.add(new InternetAddress(individualBccRecipient.trim()));            
+          }
+        }
       }
-      mailMessage.setRecipients(javax.mail.Message.RecipientType.BCC, addresses);
+      for (InternetAddress rec : addresses) {
+        mailMessage.addRecipient(javax.mail.Message.RecipientType.BCC, rec);
+      }
     }
 
     // Set Subject

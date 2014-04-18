@@ -68,10 +68,11 @@ public class ProcessRequest {
 
   public void addInputMessage(int inputIndex, String inputName, ManagedMessage inputMsg) {
     MessageInputContext presentCtxt = inputContexts.get(inputName);
+    MessageInputContext newCtxt = new MessageInputContext(inputIndex, inputName, inputMsg);
     if (presentCtxt == null) {
-      inputContexts.put(inputName, new MessageInputContext(inputIndex, inputName, inputMsg));
+      inputContexts.put(inputName, newCtxt);
     } else {
-      presentCtxt.addMsg(inputMsg);
+      presentCtxt.merge(newCtxt);
     }
   }
 
@@ -81,7 +82,7 @@ public class ProcessRequest {
       if (presentCtxt == null) {
         inputContexts.put(msgCtxt.getPortName(), msgCtxt);
       } else {
-        presentCtxt.addMsg(msgCtxt.getMsg());
+        presentCtxt.merge(msgCtxt);
       }
     }
   }

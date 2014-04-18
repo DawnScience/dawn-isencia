@@ -23,14 +23,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.actor.Actor;
 import ptolemy.actor.Initializable;
+import ptolemy.actor.Receiver;
+import ptolemy.data.IntToken;
 import ptolemy.domains.pn.kernel.PNDirector;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
+import ptolemy.kernel.util.InternalErrorException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.actor.InitializationException;
+import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.director.DirectorUtils;
 import com.isencia.passerelle.director.PasserelleDirector;
 import com.isencia.passerelle.ext.DirectorAdapter;
+import com.isencia.passerelle.message.MessageQueue;
 
 /**
  * A new version of the Passerelle process-domain director, directly extending from Ptolemy's PNDirector, mainly to try to reuse Ptolemy's receiver queue
@@ -184,17 +190,26 @@ public class CapDirector extends PNDirector implements PasserelleDirector {
     return new ProcessThread(actor, (CapDirector) director);
   }
 
-  // @Override
-  // public Receiver newReceiver() {
-  // CapReceiver receiver = new CapReceiver();
-  // try {
-  // int capacity = ((IntToken) initialQueueCapacity.getToken()).intValue();
-  // receiver.setCapacity(capacity);
-  // } catch (IllegalActionException e) {
-  // throw new InternalErrorException(e);
-  // }
-  // return receiver;
-  // }
+  @Override
+  public Receiver newReceiver() {
+    CapReceiver receiver = new CapReceiver();
+    try {
+      int capacity = ((IntToken) initialQueueCapacity.getToken()).intValue();
+      receiver.setCapacity(capacity);
+    } catch (IllegalActionException e) {
+      throw new InternalErrorException(e);
+    }
+    return receiver;
+  }
+  
+  @Override
+  public MessageQueue newMessageQueue(Actor actor) throws InitializationException {
+    try {
+      return new CapActorMessageQueue(actor, ((IntToken) maximumQueueCapacity.getToken()).intValue());
+    } catch (IllegalActionException e) {
+      throw new InitializationException(ErrorCode.ERROR, "Unable to create actor message queue", actor, e);
+    }
+  }
 
   /**
    * just an alias for stopFire()...

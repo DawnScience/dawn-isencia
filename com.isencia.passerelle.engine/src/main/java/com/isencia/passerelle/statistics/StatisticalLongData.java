@@ -31,7 +31,7 @@ class StatisticalLongData {
 	 * Recalculate statistics, including this new data
 	 * @param data
 	 */
-	public void acceptData(long data) {
+	public synchronized void acceptData(long data) {
 		count++;
 		if((minData==null) || (minData.longValue()>data)) {
 			minData = new Long(data);
@@ -46,7 +46,7 @@ class StatisticalLongData {
 	 * Loose all statistical data
 	 *
 	 */
-	public void reset() {
+	public synchronized void reset() {
 		count=0;
 		avgData=0;
 		minData=null;

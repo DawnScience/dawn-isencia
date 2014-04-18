@@ -15,7 +15,7 @@
 
 package com.isencia.passerelle.actor;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 
@@ -56,7 +56,7 @@ public class ValidationException extends PasserelleException {
    * @param modelElement
    * @param rootException
    */
-  public ValidationException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+  public ValidationException(ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(errorCode, message, modelElement, rootException);
   }
 }

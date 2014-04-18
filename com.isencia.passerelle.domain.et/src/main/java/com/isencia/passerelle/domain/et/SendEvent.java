@@ -17,7 +17,11 @@ package com.isencia.passerelle.domain.et;
 
 import java.text.DateFormat;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ptolemy.data.Token;
+import com.isencia.passerelle.core.ErrorCode;
+import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.PasserelleToken;
 import com.isencia.passerelle.core.Port;
 
@@ -33,17 +37,25 @@ import com.isencia.passerelle.core.Port;
  *
  */
 public class SendEvent extends AbstractEvent {
+  
+  private static final long serialVersionUID = -5847005338758243421L;
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(SendEvent.class);
+
+  public final static String TOPIC=TOPIC_PREFIX+"SEND";
 
   private Port sendingPort;
   private Port receivingPort;
   private Token token;
+  // flag to indicate if this event has already been processed or not
+  private boolean processed;
   
   public SendEvent(Token token, Port sendingPort, Port receivingPort) {
    this(token, sendingPort, receivingPort, new Date());
   }
 
   public SendEvent(Token token, Port sendingPort, Port receivingPort, Date timeStamp) {
-    super(timeStamp);
+    super(receivingPort, TOPIC, timeStamp);
     this.token = token;
     this.sendingPort = sendingPort;
     this.receivingPort = receivingPort;
@@ -76,6 +88,14 @@ public class SendEvent extends AbstractEvent {
   public Token getMessage() {
     return token;
   }
+  
+  public boolean isProcessed() {
+    return processed;
+  }
+  
+  public void setProcessed(boolean processed) {
+    this.processed = processed;
+  }
 
   @Override
   public int hashCode() {
@@ -84,7 +104,7 @@ public class SendEvent extends AbstractEvent {
     result = prime * result + ((token == null) ? 0 : token.hashCode());
     result = prime * result + ((receivingPort == null) ? 0 : receivingPort.hashCode());
     result = prime * result + ((sendingPort == null) ? 0 : sendingPort.hashCode());
-    result = prime * result + ((getTimestamp() == null) ? 0 : getTimestamp().hashCode());
+    result = prime * result + ((getCreationTS() == null) ? 0 : getCreationTS().hashCode());
     return result;
   }
 
@@ -103,20 +123,19 @@ public class SendEvent extends AbstractEvent {
     if (sendingPort == null) {
       if (other.sendingPort != null) return false;
     } else if (!sendingPort.equals(other.sendingPort)) return false;
-    if (getTimestamp() == null) {
-      if (other.getTimestamp() != null) return false;
-    } else if (!getTimestamp().equals(other.getTimestamp())) return false;
+    if (getCreationTS() == null) {
+      if (other.getCreationTS() != null) return false;
+    } else if (!getCreationTS().equals(other.getCreationTS())) return false;
     return true;
   }
 
   public String toString(DateFormat dateFormat) {
-    String msg="";
+    String msg="unreadable";
     try {
       msg = ((PasserelleToken)token).getMessage().getBodyContentAsString();
     } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error("Error getting msg contents for logging", new PasserelleException(ErrorCode.MSG_CONTENT_TYPE_ERROR, sendingPort, e));
     }
-    return dateFormat.format(getTimestamp()) + " " + getId() + " SendEvent [receivingPort=" + receivingPort.getFullName() + " msg="+msg+"]";
+    return dateFormat.format(getCreationTS()) + " " + getId() + " SendEvent [receivingPort=" + receivingPort.getFullName() + " msg="+msg+"]";
   }
 }

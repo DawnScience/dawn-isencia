@@ -63,6 +63,7 @@ import com.isencia.passerelle.actor.general.ErrorConsole;
 import com.isencia.passerelle.actor.general.TracerConsole;
 import com.isencia.passerelle.actor.io.FileReader;
 import com.isencia.passerelle.actor.io.FileWriter;
+import com.isencia.passerelle.actor.mail.CreateMimeMessageActor;
 import com.isencia.passerelle.actor.mail.MailReceiver;
 import com.isencia.passerelle.actor.mail.SMTPSender;
 import com.isencia.passerelle.actor.net.MulticastReceiver;
@@ -96,7 +97,7 @@ public class Activator implements BundleActivator {
         ErrorConsole.class, TracerConsole.class, FileReader.class, FileWriter.class, MailReceiver.class, SMTPSender.class, MulticastReceiver.class, MulticastSender.class,
         SocketClientSender.class, SocketCltSndOptionsFactory.class, SocketServerReceiver.class, SocketServerRequestReplier.class, SocketSvrRcvOptionsFactory.class,
         SocketSvrReqReplierOptionsFactory.class, ArrayToSequenceConverter.class, MessagesToArrayConverter.class, SequenceToArrayConverter.class, SequenceTracker.class,
-        AdvancedActor.class, DelayActor.class, MultiThreadedActor.class) {
+        AdvancedActor.class, DelayActor.class, MultiThreadedActor.class, CreateMimeMessageActor.class) {
 
       @Override
       public Class<? extends NamedObj> getClass(String className, VersionSpecification versionSpec) throws ClassNotFoundException {

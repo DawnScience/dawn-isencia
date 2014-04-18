@@ -15,8 +15,11 @@
 
 package com.isencia.passerelle.director;
 
+import ptolemy.actor.Actor;
 import ptolemy.kernel.util.IllegalActionException;
+import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.ext.DirectorAdapter;
+import com.isencia.passerelle.message.MessageQueue;
 
 /**
  * @author erwin
@@ -35,4 +38,12 @@ public interface PasserelleDirector {
    * @throws IllegalActionException 
    */
   DirectorAdapter getAdapter(String adapterName) throws IllegalActionException;
+  
+  /**
+   * 
+   * @param actor
+   * @return
+   * @throws InitializationException
+   */
+  MessageQueue newMessageQueue(Actor actor) throws InitializationException;
 }

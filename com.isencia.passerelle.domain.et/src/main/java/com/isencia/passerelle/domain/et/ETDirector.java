@@ -35,6 +35,7 @@ import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.actor.InitializationException;
 import com.isencia.passerelle.director.DirectorUtils;
 import com.isencia.passerelle.director.PasserelleDirector;
 import com.isencia.passerelle.domain.et.FlowExecutionEvent.FlowExecutionEventType;
@@ -45,6 +46,9 @@ import com.isencia.passerelle.domain.et.impl.SendEventHandler;
 import com.isencia.passerelle.domain.et.impl.SimpleEventDispatcher;
 import com.isencia.passerelle.domain.et.impl.ThreadPoolEventDispatcher;
 import com.isencia.passerelle.ext.DirectorAdapter;
+import com.isencia.passerelle.message.MessageQueue;
+import com.isencia.passerelle.message.SimpleActorMessageQueue;
+import com.isencia.passerelle.runtime.Event;
 
 /**
  * @author delerw
@@ -86,7 +90,7 @@ public class ETDirector extends Director implements PasserelleDirector {
     super(container, name);
 
     dispatchThreadsParameter = new Parameter(this, NR_OF_DISPATCH_THREADS_PARAMNAME, new IntToken(1));
-    dispatchTimeoutParameter = new Parameter(this, DISPATCH_TIMEOUT_PARAMNAME, new IntToken(1000));
+    dispatchTimeoutParameter = new Parameter(this, DISPATCH_TIMEOUT_PARAMNAME, new IntToken(100));
     
     eventHistoryParameter = new Parameter(this, KEEP_EVENT_HISTORY_PARAMNAME, BooleanToken.FALSE);
     new CheckBoxStyle(eventHistoryParameter, "check");
@@ -280,6 +284,10 @@ public class ETDirector extends Director implements PasserelleDirector {
   @Override
   public Receiver newReceiver() {
     return new ETReceiver(this);
+  }
+  
+  public MessageQueue newMessageQueue(Actor actor) throws InitializationException {
+    return new SimpleActorMessageQueue(actor);
   }
 
   public void enqueueEvent(Event event) throws EventRefusedException {

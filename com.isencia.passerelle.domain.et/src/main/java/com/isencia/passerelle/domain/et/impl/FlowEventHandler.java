@@ -15,8 +15,8 @@
 
 package com.isencia.passerelle.domain.et.impl;
 
+import com.isencia.passerelle.runtime.Event;
 import com.isencia.passerelle.domain.et.ETDirector;
-import com.isencia.passerelle.domain.et.Event;
 import com.isencia.passerelle.domain.et.EventHandler;
 import com.isencia.passerelle.domain.et.FlowExecutionEvent;
 import com.isencia.passerelle.util.ExecutionTracerService;

@@ -114,18 +114,20 @@ public abstract class AbstractErrorHandlerActor extends Actor implements ErrorHa
 
   protected boolean sendErrorMsgOnwardsVia(String outputName, ManagedMessage msg, PasserelleException error) {
     boolean result = false;
-    Object outputPort = getPort(outputName);
-    if (outputPort == null || !(outputPort instanceof Port)) {
-      getLogger().error("Error in actor's ports",
-          new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error finding port for range " + outputName, this, error));
-    } else {
-      try {
-        addErrorOutput(new MessageOutputContext((Port) outputPort, msg));
-        super.triggerNextIteration();
-        result = true;
-      } catch (IllegalActionException e2) {
-        getLogger().error("Failed to trigger next iteration ", e2);
-        getLogger().error("Error received ", error);
+    if (!isFinishRequested()) {
+      Object outputPort = getPort(outputName);
+      if (outputPort == null || !(outputPort instanceof Port)) {
+        getLogger().error("Error in actor's ports",
+            new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error finding port for range " + outputName, this, error));
+      } else {
+        try {
+          addErrorOutput(new MessageOutputContext((Port) outputPort, msg));
+          super.triggerNextIteration();
+          result = true;
+        } catch (IllegalActionException e2) {
+          getLogger().error("Failed to trigger next iteration ", e2);
+          getLogger().error("Error received ", error);
+        }
       }
     }
     return result;

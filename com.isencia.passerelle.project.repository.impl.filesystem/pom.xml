@@ -6,11 +6,11 @@
 	<parent>
 		<groupId>com.isencia.passerelle</groupId>
 		<artifactId>passerelle-core</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>8.7.0-SNAPSHOT</version>
 	</parent>
 	
 	<groupId>com.isencia.passerelle</groupId>
 	<artifactId>com.isencia.passerelle.project.repository.impl.filesystem</artifactId>
-	<version>8.3.0</version>
+  <version>8.7.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 </project>

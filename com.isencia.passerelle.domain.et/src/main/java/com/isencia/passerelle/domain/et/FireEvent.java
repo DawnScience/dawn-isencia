@@ -17,8 +17,13 @@ package com.isencia.passerelle.domain.et;
 import java.text.DateFormat;
 import java.util.Date;
 import ptolemy.actor.Actor;
+import ptolemy.kernel.util.NamedObj;
 
 public class FireEvent extends AbstractEvent {
+  
+  private static final long serialVersionUID = -6533792248319025034L;
+
+  public final static String TOPIC=TOPIC_PREFIX+"FIRE";
 
   private Actor target;
 
@@ -27,7 +32,7 @@ public class FireEvent extends AbstractEvent {
   }
 
   public FireEvent(Actor target, Date timeStamp) {
-    super(timeStamp);
+    super((NamedObj)target, TOPIC, timeStamp);
     this.target = target;
   }
 
@@ -40,6 +45,6 @@ public class FireEvent extends AbstractEvent {
   }
 
   public String toString(DateFormat dateFormat) {
-    return dateFormat.format(getTimestamp()) + " " + getId() + " FireEvent [target=" + target.getFullName() + "]";
+    return dateFormat.format(getCreationTS()) + " " + getId() + " FireEvent [target=" + target.getFullName() + "]";
   }
 }

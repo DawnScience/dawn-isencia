@@ -18,8 +18,8 @@ package com.isencia.passerelle.domain.et.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ptolemy.actor.Actor;
+import com.isencia.passerelle.runtime.Event;
 import com.isencia.passerelle.domain.et.ETDirector;
-import com.isencia.passerelle.domain.et.Event;
 import com.isencia.passerelle.domain.et.FireEvent;
 
 /**

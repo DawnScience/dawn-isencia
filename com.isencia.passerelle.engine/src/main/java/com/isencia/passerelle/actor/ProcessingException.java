@@ -14,7 +14,7 @@
 */
 package com.isencia.passerelle.actor;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.message.ManagedMessage;
@@ -62,7 +62,7 @@ public class ProcessingException extends PasserelleException {
    * @param modelElement
    * @param rootException
    */
-  public ProcessingException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+  public ProcessingException(ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(errorCode, message, modelElement, rootException);
   }
 
@@ -74,7 +74,7 @@ public class ProcessingException extends PasserelleException {
    * @param msgContext
    * @param rootException
    */
-  public ProcessingException(ErrorCode errorCode, String message, NamedObj modelElement, ManagedMessage msgContext, Throwable rootException) {
+  public ProcessingException(ErrorCode errorCode, String message, Nameable modelElement, ManagedMessage msgContext, Throwable rootException) {
     super(errorCode, message, modelElement, msgContext, rootException);
   }
 }

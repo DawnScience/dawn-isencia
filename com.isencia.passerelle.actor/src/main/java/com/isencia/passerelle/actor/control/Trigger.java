@@ -61,23 +61,25 @@ public class Trigger extends Source {
   protected Logger getLogger() {
     return LOGGER;
   }
-  
+
   protected void doInitialize() throws InitializationException {
     messageSent = false;
     super.doInitialize();
   }
 
   protected ManagedMessage getMessage() throws ProcessingException {
-    if (messageSent)
+    if (messageSent) {
+      requestFinish();
       return null;
-
-    ManagedMessage dataMsg = null;
-    try {
-      dataMsg = createTriggerMessage();
-    } finally {
-      messageSent = true;
+    } else {
+      ManagedMessage dataMsg = null;
+      try {
+        dataMsg = createTriggerMessage();
+      } finally {
+        messageSent = true;
+      }
+      return dataMsg;
     }
-    return dataMsg;
   }
 
   protected String getAuditTrailMessage(ManagedMessage message, Port port) {

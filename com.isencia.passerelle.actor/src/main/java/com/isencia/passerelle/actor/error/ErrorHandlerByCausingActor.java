@@ -36,7 +36,7 @@ import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.util.charops.CharOperation;
@@ -148,10 +148,10 @@ public class ErrorHandlerByCausingActor extends AbstractErrorHandlerActor {
   /**
    * This handler requires that either the errorSource argument is not-null, or the error argument returns a not-null <code>getModelElement()</code>
    */
-  public boolean handleError(NamedObj errorSource, PasserelleException error) {
+  public boolean handleError(Nameable errorSource, PasserelleException error) {
     boolean result = false;
     ManagedMessage msg = error.getMsgContext();
-    NamedObj errorSourceFromException = error.getModelElement();
+    Nameable errorSourceFromException = error.getModelElement();
     if ((msg != null) && ((errorSource != null) || (errorSourceFromException != null)) && (!causingActorNamePatterns.isEmpty())) {
       String sourceName = useFullName ? (errorSource != null ? errorSource.getFullName() : errorSourceFromException.getFullName())
           : (errorSource != null ? errorSource.getName() : errorSourceFromException.getName());

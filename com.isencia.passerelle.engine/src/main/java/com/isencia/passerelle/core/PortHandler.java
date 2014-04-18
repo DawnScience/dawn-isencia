@@ -25,7 +25,7 @@ import ptolemy.data.Token;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.Nameable;
 import ptolemy.kernel.util.NamedObj;
-import com.isencia.passerelle.domain.ProcessThread;
+import com.isencia.passerelle.domain.cap.ProcessThread;
 import com.isencia.passerelle.util.LoggerManager;
 
 /**
@@ -98,7 +98,6 @@ public class PortHandler {
   }
 
   /**
-   * 
    * @param ioPort
    * @param inProcessDomain
    */
@@ -108,7 +107,6 @@ public class PortHandler {
   }
 
   /**
-   * 
    * @param ioPort
    * @param listener
    * @param inProcessDomain
@@ -122,7 +120,8 @@ public class PortHandler {
    * Creates a new PortHandler object.
    * 
    * @param ioPort
-   * @param listener an object interested in receiving messages from the handler in push mode
+   * @param listener
+   *          an object interested in receiving messages from the handler in push mode
    */
   public PortHandler(Port ioPort, PortListener listener) {
     this(ioPort);
@@ -130,7 +129,8 @@ public class PortHandler {
   }
 
   /**
-   * @param listener an object interested in receiving messages from the handler in push mode
+   * @param listener
+   *          an object interested in receiving messages from the handler in push mode
    */
   public void setListener(PortListener listener) {
     this.listener = listener;
@@ -178,7 +178,7 @@ public class PortHandler {
       // messages will be in the queue
       try {
         token = (Token) queue.take();
-        if (Token.NIL.equals(token)) {
+        if (Token.NIL.equals(token) || PasserelleToken.POISON_PILL.equals(token)) {
           // indicates a terminating system
           queue.offer(token);
           LOGGER.debug("{} - getToken() - got a termination token {}", getPort().getFullName(), token);
@@ -202,14 +202,15 @@ public class PortHandler {
       try {
         if (ioPort.hasToken(i)) {
           token = ioPort.get(i);
-          if (token != null) {
+          if (token != null && !PasserelleToken.POISON_PILL.equals(token)) {
             break;
-          } else {
+          }
+          if (token == null) {
             channelIsDead = true;
           }
         }
       } catch (NoTokenException e) {
-          channelIsDead = true;
+        channelIsDead = true;
       } catch (Exception e) {
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug(getPort().getFullName()+" - readTokenFromPort() exception", e);

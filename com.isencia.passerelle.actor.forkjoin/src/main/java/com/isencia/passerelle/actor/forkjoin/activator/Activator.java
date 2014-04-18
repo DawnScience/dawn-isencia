@@ -13,9 +13,13 @@ public class Activator implements BundleActivator {
   @SuppressWarnings("rawtypes")
   private ServiceRegistration apSvcReg;
   
+  @SuppressWarnings("unchecked")
   public void start(BundleContext context) throws Exception {
     apSvcReg = context.registerService(ModelElementClassProvider.class.getName(), 
-        new DefaultModelElementClassProvider(Fork.class, Join.class), null);
+        new DefaultModelElementClassProvider(
+              Fork.class, 
+              Join.class), 
+        null);
   }
 
   public void stop(BundleContext context) throws Exception {

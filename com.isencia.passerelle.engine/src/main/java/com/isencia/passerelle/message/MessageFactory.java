@@ -74,8 +74,9 @@ public class MessageFactory {
         try {
           String key = (String) hdrEntry.getKey();
           String value = (String) hdrEntry.getValue();
-          if (!(ManagedMessage.SystemHeader.HEADER_ID.equals(key) || ManagedMessage.SystemHeader.HEADER_VERSION.equals(key) || ManagedMessage.SystemHeader.HEADER_TIMESTAMP_CREATION
-              .equals(key))) {
+                    if(!(ManagedMessage.SystemHeader.HEADER_ID.equals(key)
+                      || ManagedMessage.SystemHeader.HEADER_VERSION.equals(key)
+                      || ManagedMessage.SystemHeader.HEADER_TIMESTAMP_CREATION.equals(key))) {
             newMsg.setHeader(key, value);
           }
         } catch (ClassCastException e) {

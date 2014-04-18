@@ -21,13 +21,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ptolemy.actor.Director;
 import ptolemy.data.IntToken;
 import ptolemy.data.Token;
 import ptolemy.data.expr.Parameter;
@@ -44,6 +40,7 @@ import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 import com.isencia.passerelle.core.PortHandler;
 import com.isencia.passerelle.core.PortMode;
+import com.isencia.passerelle.director.PasserelleDirector;
 import com.isencia.passerelle.message.ManagedMessage;
 import com.isencia.passerelle.message.MessageBuffer;
 import com.isencia.passerelle.message.MessageException;
@@ -52,6 +49,8 @@ import com.isencia.passerelle.message.MessageHelper;
 import com.isencia.passerelle.message.MessageInputContext;
 import com.isencia.passerelle.message.MessageOutputContext;
 import com.isencia.passerelle.message.MessageProvider;
+import com.isencia.passerelle.message.MessageQueue;
+import com.isencia.passerelle.message.SimpleActorMessageQueue;
 
 /**
  * <p>
@@ -118,12 +117,10 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
   protected List<PortHandler> blockingInputHandlers = new ArrayList<PortHandler>();
   protected Map<Port, Boolean> blockingInputFinishRequests = new HashMap<Port, Boolean>();
 
-  // Queue of messages that have been pushed to us, incl info on the input port on which
+  // Queue of messages that have been pushed to us, 
+  // incl info on the input port on which
   // they have been received.
-  private Queue<MessageInputContext> pushedMessages = new ConcurrentLinkedQueue<MessageInputContext>();
-  // lock to manage blocking on empty pushedMessages queue
-  private ReentrantLock msgQLock = new ReentrantLock();
-  private Condition msgQNonEmpty = msgQLock.newCondition();
+  private MessageQueue pushedMessages;
 
   // These track current processing containers between prefire/fire/postfire.
   // Storing processing state in this way can only work for actors that are iterating
@@ -152,7 +149,7 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
     return "";
   }
 
-  public Queue<MessageInputContext> getMessageQueue() {
+  public MessageQueue getMessageQueue() {
     return pushedMessages;
   }
 
@@ -182,22 +179,18 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
   public void offer(MessageInputContext ctxt) throws PasserelleException {
     getLogger().debug("{} - offer {}", getFullName(), ctxt);
     try {
-      if (!msgQLock.tryLock(10, TimeUnit.SECONDS)) {
-        // if we did not get the lock, something is getting overcharged, so refuse the task
-        throw new Exception("Msg Queue lock overcharged for " + getFullName());
-      }
-      pushedMessages.offer(ctxt);
-      msgQNonEmpty.signal();
+      pushedMessages.put(ctxt);
     } catch (Exception e) {
       throw new PasserelleException(ErrorCode.MSG_DELIVERY_FAILURE, "Error storing received msg", this, ctxt.getMsg(), e);
-    } finally {
-      try {
-        msgQLock.unlock();
-      } catch (Exception e) {
-      }
     }
   }
 
+  @Override
+  protected void doPreInitialize() throws InitializationException {
+    super.doPreInitialize();
+    pushedMessages = newMessageQueue();
+  }
+  
   @Override
   @SuppressWarnings("unchecked")
   protected void doInitialize() throws InitializationException {
@@ -241,11 +234,22 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
     getLogger().trace("{} - doInitialize() - exit", getFullName());
   }
 
+  protected MessageQueue newMessageQueue() throws InitializationException {
+    MessageQueue result = null;
+    Director d = getDirector();
+    if(d instanceof PasserelleDirector) {
+      result = ((PasserelleDirector)d).newMessageQueue(this);
+    } else {
+      result = new SimpleActorMessageQueue(this);
+    }
+    return result;
+  }
+
   @Override
   protected boolean doPreFire() throws ProcessingException {
-    getLogger().trace("{} - doPreFire() - entry", getFullName());
+    getLogger().trace("{} - doPreFire() - entry  ", getFullName());
     boolean readyToFire = super.doPreFire();
-    if (readyToFire && !isSource) {
+		if (readyToFire && !isSource) {
       // first read from all blocking inputs
       for (int i = 0; i < blockingInputHandlers.size(); i++) {
         PortHandler handler = blockingInputHandlers.get(i);
@@ -283,7 +287,7 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
               getLogger().debug("{} - doPreFire() - found exhausted port {} ", getFullName(), handler.getName());
             } else if (msg != null) {
               if (getLogger().isDebugEnabled())
-                getLogger().debug("{} - doPreFire() - msg {} received on port {}", new Object[] { getFullName(), msg.getID(), handler.getName() });
+                getLogger().debug("{} - doPreFire() - message {} received on port {}", new Object[] { getFullName(), msg.getID(), handler.getName() });
             }
           }
         }
@@ -307,12 +311,11 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
       }
       readyToFire = readyToFire && currentProcessRequest.hasSomethingToProcess();
       // when all ports are exhausted, we can stop this actor
-      if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && !hasPushedMessages()) {
+      if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && pushedMessages.isEmpty()) {
         requestFinish();
         readyToFire = true;
       }
     }
-
     getLogger().trace("{} - doPreFire() - exit : {}", getFullName(), readyToFire);
     return readyToFire;
   }
@@ -420,15 +423,6 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
     getLogger().trace("{} - addPushedMessages() - entry", getFullName());
     int msgCtr = 0;
     try {
-      if (!msgQLock.tryLock(10, TimeUnit.SECONDS)) {
-        // if we did not get the lock, something is getting overcharged,
-        // so refuse the task
-        throw new ProcessingException(ErrorCode.RUNTIME_PERFORMANCE_INFO, "Msg Queue lock overcharged...", this, null);
-      }
-      // while (!isFinishRequested() && !areAllInputsFinished() && pushedMessages.isEmpty()) {
-      // msgQNonEmpty.await(100, TimeUnit.MILLISECONDS);
-      // }
-
       while (!pushedMessages.isEmpty()) {
         req.addInputContext(pushedMessages.poll());
         msgCtr++;
@@ -436,34 +430,8 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
     } catch (InterruptedException e) {
       throw new ProcessingException(ErrorCode.RUNTIME_PERFORMANCE_INFO, "Msg Queue lock interrupted...", this, null);
     } finally {
-      try {
-        msgQLock.unlock();
-      } catch (Exception e) {
-      }
       getLogger().trace("{} - addPushedMessages() - exit - added {}", getFullName(), msgCtr);
     }
-  }
-
-  protected boolean hasPushedMessages() throws ProcessingException {
-    getLogger().trace("{} - hasPushedMessages() - entry", getFullName());
-    boolean result = false;
-    try {
-      if (!msgQLock.tryLock(1, TimeUnit.SECONDS)) {
-        // if we did not get the lock, something is getting overcharged,
-        // so refuse the task
-        throw new ProcessingException(ErrorCode.RUNTIME_PERFORMANCE_INFO, "Msg Queue lock overcharged...", this, null);
-      }
-      result = !pushedMessages.isEmpty();
-    } catch (InterruptedException e) {
-      throw new ProcessingException(ErrorCode.RUNTIME_PERFORMANCE_INFO, "Msg Queue lock interrupted...", this, null);
-    } finally {
-      try {
-        msgQLock.unlock();
-      } catch (Exception e) {
-      }
-      getLogger().trace("{} - hasPushedMessages() - exit - {}", getFullName(), result);
-    }
-    return result;
   }
 
   /**
@@ -591,7 +559,11 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
     final Actor actor = (Actor) super.clone(workspace);
     actor.blockingInputHandlers = new ArrayList<PortHandler>();
     actor.blockingInputFinishRequests = new HashMap<Port, Boolean>();
-    actor.pushedMessages = new ConcurrentLinkedQueue<MessageInputContext>();
+    try {
+      actor.pushedMessages = actor.newMessageQueue();
+    } catch (InitializationException e) {
+      throw new RuntimeException("Failed to create new message queue for cloned actor "+actor.getFullName(), e);
+    }
     actor.msgProviders = new HashSet<Object>();
     return actor;
   }

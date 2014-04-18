@@ -14,7 +14,6 @@
 */
 package com.isencia.passerelle.message;
 
-import java.util.Queue;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.core.Port;
 
@@ -34,7 +33,7 @@ public interface MessageBuffer {
 	 * 
 	 * @return the queue on which the msgs are buffered
 	 */
-	Queue<MessageInputContext> getMessageQueue();
+	MessageQueue getMessageQueue();
 	
 	/**
 	 * 

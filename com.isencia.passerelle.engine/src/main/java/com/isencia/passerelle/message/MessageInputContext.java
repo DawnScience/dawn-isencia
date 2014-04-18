@@ -79,11 +79,21 @@ public class MessageInputContext {
 	}
 
 	/**
-	 * Add an extra message received from this context's input port.
-	 * @param inputMsg
+	 * Merge with the other context, if it relates to the same port
+	 * @param other
+	 * @return true if a merge was done, i.e. the other context was for the same port;
+	 * false if not
 	 */
-	public void addMsg(ManagedMessage inputMsg) {
-		msgQ.offer(inputMsg);
+	public boolean merge(MessageInputContext other) {
+	  if(other.getPortName().equals(this.getPortName())) {
+	    Iterator<ManagedMessage> otherMsgItr = other.getMsgIterator();
+	    while(otherMsgItr.hasNext()) {
+	      msgQ.offer(otherMsgItr.next());
+	    }
+	    return true;
+	  } else {
+	    return false;
+	  }
 	}
 
   @Override

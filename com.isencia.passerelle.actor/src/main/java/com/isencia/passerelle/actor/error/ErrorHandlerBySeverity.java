@@ -30,9 +30,9 @@ import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
-import ptolemy.kernel.util.NamedObj;
-import com.isencia.passerelle.core.ErrorCode.Severity;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
+import com.isencia.passerelle.core.ErrorCode.Severity;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.message.ManagedMessage;
 
@@ -84,7 +84,7 @@ public class ErrorHandlerBySeverity extends AbstractErrorHandlerActor {
     }
   }
   
-  public boolean handleError(NamedObj errorSource, PasserelleException error) {
+  public boolean handleError(Nameable errorSource, PasserelleException error) {
     boolean result = false;
     ManagedMessage msg = error.getMsgContext();
     ErrorCode errCode = error.getErrorCode();

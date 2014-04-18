@@ -2,6 +2,7 @@ package com.isencia.passerelle.util.ptolemy;
 
 import ptolemy.actor.TypedActor;
 import ptolemy.data.Token;
+import ptolemy.data.expr.ConversionUtilities;
 import ptolemy.data.expr.Parameter;
 import ptolemy.kernel.ComponentEntity;
 import ptolemy.kernel.Entity;
@@ -15,6 +16,8 @@ import ptolemy.kernel.util.Location;
 import ptolemy.kernel.util.NameDuplicationException;
 import ptolemy.kernel.util.NamedObj;
 import ptolemy.kernel.util.Workspace;
+import com.isencia.passerelle.core.PasserelleToken;
+import com.isencia.passerelle.message.MessageException;
 
 /* A parameter that has an associated port.
 
@@ -422,12 +425,24 @@ public class PortParameter extends Parameter {
 
         if ((port != null) && (port.getWidth() > 0) && port.hasToken(0)) {
             Token token = port.get(0);
+            if(token instanceof PasserelleToken) {
+              token = convertToPlainToken((PasserelleToken)token);
+            }
             setCurrentValue(token);
 
             if (_debugging) {
                 _debug("Updated parameter value to: " + token);
             }
         }
+    }
+
+    protected Token convertToPlainToken(PasserelleToken token) throws IllegalActionException {
+      try {
+        Object body = token.getMessage().getBodyContent();
+        return ConversionUtilities.convertJavaTypeToToken(body);
+      } catch (MessageException e) {
+        throw new IllegalActionException(this, e, "Error reading msg body");
+      }
     }
 
     ///////////////////////////////////////////////////////////////////

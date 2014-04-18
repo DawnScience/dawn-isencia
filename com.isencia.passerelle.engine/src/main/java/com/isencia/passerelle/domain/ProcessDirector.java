@@ -48,7 +48,7 @@ public abstract class ProcessDirector extends CompositeProcessDirector implement
 
   // annoyingly need to maintaina copy here of the activeThreads in the Ptolemy ProcessDirector baseclass,
   // as it is not reachable from subclasses....
-  private Collection<ProcessThread> myThreads = new HashSet<ProcessThread>();
+  private Collection<Thread> myThreads = new HashSet<Thread>();
   
   /**
 	 * 
@@ -134,7 +134,7 @@ public abstract class ProcessDirector extends CompositeProcessDirector implement
     }
   }
 
-  public Collection<ProcessThread> getThreads() {
+  public Collection<Thread> getThreads() {
     return myThreads;
   }
 
@@ -151,10 +151,10 @@ public abstract class ProcessDirector extends CompositeProcessDirector implement
   }
 
   public void resumeAllActors() {
-    Iterator<ProcessThread> threads = myThreads.iterator();
+    Iterator<Thread> threads = myThreads.iterator();
 
     while (threads.hasNext()) {
-      ProcessThread thread = threads.next();
+      ProcessThread thread = (ProcessThread) threads.next();
 
       if (thread.getActor() instanceof com.isencia.passerelle.actor.Actor) {
         ((com.isencia.passerelle.actor.Actor) thread.getActor()).resumeFire();

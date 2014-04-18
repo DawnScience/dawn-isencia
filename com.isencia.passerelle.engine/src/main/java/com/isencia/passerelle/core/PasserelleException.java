@@ -14,7 +14,7 @@
  */
 package com.isencia.passerelle.core;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.message.ManagedMessage;
 
 /**
@@ -47,7 +47,7 @@ public class PasserelleException extends Exception implements Comparable<Passere
   /**
    * the model element to which the exception is related, or has generated it. typically an actor.
    */
-  private NamedObj modelElement;
+  private Nameable modelElement;
 
   private ErrorCode errorCode;
 
@@ -65,8 +65,8 @@ public class PasserelleException extends Exception implements Comparable<Passere
     super(message, rootException);
     if (context instanceof ManagedMessage) {
       this.msgContext = (ManagedMessage) context;
-    } else if (context instanceof NamedObj) {
-      this.modelElement = (NamedObj) context;
+    } else if (context instanceof Nameable) {
+      this.modelElement = (Nameable) context;
     } else {
       this.context = context;
     }
@@ -102,7 +102,7 @@ public class PasserelleException extends Exception implements Comparable<Passere
    *          the element where the error was raised. Typically an actor, or the parent flow ico non-actor-related errors.
    * @param rootException
    */
-  public PasserelleException(ErrorCode errorCode, NamedObj modelElement, Throwable rootException) {
+  public PasserelleException(ErrorCode errorCode, Nameable modelElement, Throwable rootException) {
     super(errorCode != null ? errorCode.getDescription() : null);
     if (errorCode == null) {
       throw new IllegalArgumentException("error code can not be null");
@@ -151,7 +151,7 @@ public class PasserelleException extends Exception implements Comparable<Passere
    *          the element where the error was raised.
    * @param rootException
    */
-  public PasserelleException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+  public PasserelleException(ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(message);
     if (errorCode == null) {
       throw new IllegalArgumentException("error code can not be null");
@@ -178,7 +178,7 @@ public class PasserelleException extends Exception implements Comparable<Passere
    * @param msgContext
    * @param rootException
    */
-  public PasserelleException(ErrorCode errorCode, String message, NamedObj modelElement, ManagedMessage msgContext, Throwable rootException) {
+  public PasserelleException(ErrorCode errorCode, String message, Nameable modelElement, ManagedMessage msgContext, Throwable rootException) {
     super(message);
     if (errorCode == null) {
       throw new IllegalArgumentException("error code can not be null");
@@ -206,7 +206,7 @@ public class PasserelleException extends Exception implements Comparable<Passere
   /**
    * @return the modelElement
    */
-  public NamedObj getModelElement() {
+  public Nameable getModelElement() {
     return modelElement;
   }
 

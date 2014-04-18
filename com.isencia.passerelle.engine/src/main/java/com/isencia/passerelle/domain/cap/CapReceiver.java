@@ -72,16 +72,14 @@ public class CapReceiver extends PNQueueReceiver implements MessageProvider {
       throw new UnsupportedOperationException("get() not supported for shared buffer");
     } else {
       synchronized (this) {
-        while (isPaused() || (!_terminate && !super.hasToken())) {
+        while (isPaused()) {
           try {
             workspace.wait(this, 1000);
           } catch (InterruptedException e) {
           }
         }
       }
-      if (super.hasToken()) {
-        result = super.get();
-      }
+      result = super.get();
     }
     return result;
   }
@@ -136,10 +134,7 @@ public class CapReceiver extends PNQueueReceiver implements MessageProvider {
    */
   @Override
   public void put(Token token) {
-    if (_terminate) {
-      return;
-    }
-    if (buffer != null) {
+    if (buffer != null && !_terminate) {
       try {
         if (getContainer() instanceof Port) {
           Port _p = (Port) getContainer();
@@ -174,5 +169,6 @@ public class CapReceiver extends PNQueueReceiver implements MessageProvider {
   @Override
   public void reset() {
     _terminate = false;
+    super.reset();
   }
 }

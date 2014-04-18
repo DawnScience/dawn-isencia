@@ -15,15 +15,19 @@
 
 package com.isencia.passerelle.director;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ptolemy.actor.Director;
 import ptolemy.kernel.Port;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
+
 import com.isencia.passerelle.actor.Actor;
 import com.isencia.passerelle.ext.DirectorAdapter;
 import com.isencia.passerelle.ext.impl.DefaultDirectorAdapter;
@@ -79,24 +83,34 @@ public class DirectorUtils {
   public static Set<Actor> getActiveActorsWithoutInputs(Director director) {
     Set<Actor> result = new HashSet<Actor>();
     DirectorAdapter adapter = DirectorUtils.getAdapter(director, null);
-    for (ptolemy.actor.Actor actor : adapter.getActiveActors()) {
+    Collection<ptolemy.actor.Actor> activeActors = adapter.getActiveActors();
+    for (ptolemy.actor.Actor actor : activeActors) {
+      LOGGER.debug("{} : Active actor", actor.getFullName());
       if (actor instanceof Actor) {
         Actor a = (Actor) actor;
+        @SuppressWarnings("unchecked")
         List<Port> portList = a.inputPortList();
+        if(portList.isEmpty()) {
+          LOGGER.debug("{} : Active actor without input ports", actor.getFullName());
+        }
         boolean actorHasInputs = false;
         for (Port port : portList) {
           if (port instanceof com.isencia.passerelle.core.Port) {
             com.isencia.passerelle.core.Port p = (com.isencia.passerelle.core.Port) port;
             if (!p.getActiveSources().isEmpty()) {
+              LOGGER.debug("Active port {}", p.getName());
               actorHasInputs = true;
+            } else {
+              LOGGER.debug("NON-active port {}", p.getName());
             }
           }
         }
         if(!actorHasInputs) {
+          LOGGER.debug("{} : Found active actor with no active input ports", actor.getFullName());
           result.add(a);
         }
       } else {
-        LOGGER.warn("Model contains non-Passerelle actor "+actor.getFullName());
+        LOGGER.warn("{} : non-Passerelle actor", actor.getFullName());
       }
     }
     return result;

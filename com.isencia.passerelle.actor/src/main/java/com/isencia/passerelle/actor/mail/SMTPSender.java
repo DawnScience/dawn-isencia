@@ -41,6 +41,8 @@ public class SMTPSender extends ChannelSink {
   public final static String MAILSERVER_PARAM = "MailServer";
   public final static String FROM_PARAM = "From";
   public final static String TO_PARAM = "To";
+  public final static String CC_PARAM = "Cc";
+  public final static String BCC_Param = "Bcc";
   public final static String SUBJECT_PARAM = "Subject";
 
   public final static String MAILHOST_HEADER = "MailHost";
@@ -55,11 +57,15 @@ public class SMTPSender extends ChannelSink {
   public Parameter mailServerParam;
   public Parameter fromParam;
   public Parameter toParam;
+  public Parameter ccParam;
+  public Parameter bccParam;
   public Parameter subjectParam;
 
   private String mailHost = null;
   private String from = null;
   private String to = null;
+  private String cc = null;
+  private String bcc = null;
   private String subject = null;
 
   public SMTPSender(CompositeEntity container, String name) throws NameDuplicationException, IllegalActionException {
@@ -70,6 +76,10 @@ public class SMTPSender extends ChannelSink {
     fromParam.setExpression(System.getProperty("mail.from", "host"));
     toParam = new StringParameter(this, TO_PARAM);
     registerConfigurableParameter(toParam);
+    ccParam = new StringParameter(this, CC_PARAM);
+    registerConfigurableParameter(ccParam);
+    bccParam = new StringParameter(this, BCC_Param);
+    registerConfigurableParameter(bccParam);
     subjectParam = new StringParameter(this, SUBJECT_PARAM);
     registerConfigurableParameter(subjectParam);
   }
@@ -103,6 +113,18 @@ public class SMTPSender extends ChannelSink {
         to = toToken.stringValue();
         getLogger().debug("{} To Attribute changed to {}", getFullName(), to);
       }
+    } else if (attribute == ccParam) {
+      StringToken ccToken = (StringToken) ccParam.getToken();
+      if (ccToken != null) {
+        cc = ccToken.stringValue();
+        getLogger().debug("{} Cc Attribute changed to {}", getFullName(), cc);
+      }
+    } else if (attribute == bccParam) {
+      StringToken bccToken = (StringToken) bccParam.getToken();
+      if (bccToken != null) {
+        bcc = bccToken.stringValue();
+        getLogger().debug("{} Bcc Attribute changed to {}", getFullName(), bcc);
+      }
     } else if (attribute == subjectParam) {
       StringToken subjectToken = (StringToken) subjectParam.getToken();
       if (subjectToken != null) {
@@ -134,6 +156,10 @@ public class SMTPSender extends ChannelSink {
         if (!managedMsg.hasBodyHeader(FROM_HEADER) && from != null && from.length() > 0) managedMsg.addBodyHeader(FROM_HEADER, from);
         // Check to
         if (!managedMsg.hasBodyHeader(TO_HEADER) && to != null && to.length() > 0) managedMsg.addBodyHeader(TO_HEADER, to);
+        // Check cc
+        if (!managedMsg.hasBodyHeader(CC_HEADER) && cc != null && cc.length() > 0) managedMsg.addBodyHeader(CC_HEADER, cc);
+        // Check bcc
+        if (!managedMsg.hasBodyHeader(BCC_HEADER) && bcc != null && bcc.length() > 0) managedMsg.addBodyHeader(BCC_HEADER, bcc);
         // Check subject
         if (!managedMsg.hasBodyHeader(SUBJECT_HEADER) && subject != null && subject.length() > 0) managedMsg.addBodyHeader(SUBJECT_HEADER, subject);
         return managedMsg;

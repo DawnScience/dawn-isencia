@@ -41,6 +41,8 @@ public class ErrorCode extends Enumerated<ErrorCode> {
   public static final ErrorCode ACTOR_EXECUTION_FATAL = new ErrorCode("ACTOR_EXECUTION_FATAL", "0229", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.FATAL, "Fatal error in Actor execution");
 
   public static final ErrorCode FLOW_LOADING_ERROR = new ErrorCode("FLOW_LOADING_ERROR", "0300", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error loading Flow");
+  public static final ErrorCode FLOW_SAVING_ERROR_TECH = new ErrorCode("FLOW_SAVING_ERROR_TECH", "0301", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error saving Flow");
+  public static final ErrorCode FLOW_SAVING_ERROR_FUNC = new ErrorCode("FLOW_SAVING_ERROR_FUNC", "0302", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Error saving Flow");
   public static final ErrorCode FLOW_VALIDATION_WARNING = new ErrorCode("FLOW_VALIDATION_WARNING", "0310", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.WARNING, "Warning validating Flow");
   public static final ErrorCode FLOW_VALIDATION_ERROR = new ErrorCode("FLOW_VALIDATION_ERROR", "0311", ErrorCategory.FUNCTIONAL, ErrorCode.Severity.ERROR, "Error validating Flow");
   public static final ErrorCode FLOW_CONFIGURATION_ERROR = new ErrorCode("FLOW_CONFIGURATION_ERROR", "0320", ErrorCategory.TECHNICAL, ErrorCode.Severity.ERROR, "Error configuring Flow");

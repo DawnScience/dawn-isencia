@@ -35,11 +35,26 @@ public class FlowAlreadyExecutingException extends PasserelleException {
   }
 
   /**
+   * @param flowName
+   */
+  public FlowAlreadyExecutingException(String flowName) {
+    super(ErrorCode.FLOW_STATE_ERROR, "Flow already executing " + flowName, null);
+  }
+
+  /**
    * @param errorCode
    * @param flow
    */
   public FlowAlreadyExecutingException(ErrorCode errorCode, NamedObj flow) {
-    super(errorCode, flow, null);
+    super(errorCode, "Flow already executing", flow, null);
+  }
+
+  /**
+   * @param errorCode
+   * @param flowName
+   */
+  public FlowAlreadyExecutingException(ErrorCode errorCode, String flowName) {
+    super(errorCode, "Flow already executing " + flowName, null);
   }
 
 }

@@ -98,7 +98,7 @@ public class Fork extends AbstractMessageSequenceGenerator {
   /**
    * override this if you need special msg copies/clones
    * 
-   * default impl does nothing...
+   * default impl just returns the argument
    * 
    * @param scopeMessageBodyContent
    * @return

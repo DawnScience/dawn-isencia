@@ -32,9 +32,11 @@ import ptolemy.kernel.util.NamedObj;
 
 /**
  * The central registry where version specs can be maintained for actor implementations.
- * Currently Ptolemy and Passerelle are only able to maintain one version of a given actor class in a runtime.
- * But in the future, after refactoring the MomlParser's actor loading, multiple versions can be present,
+ * <p>
+ * Currently Ptolemy is only able to maintain one version of a given actor class in a runtime.
+ * In Passerelle, with the refactoring of the MomlParser's actor loading, multiple versions can be present,
  * taking advantage of OSGi's version management features.
+ * </p>
  * 
  * @author erwin
  *

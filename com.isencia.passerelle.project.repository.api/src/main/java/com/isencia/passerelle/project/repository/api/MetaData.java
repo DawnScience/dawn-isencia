@@ -1,24 +1,26 @@
 package com.isencia.passerelle.project.repository.api;
 
-public class MetaData {
+public class MetaData implements Comparable<MetaData> {
 
-  public MetaData(String name, String path) {
+  public MetaData(String code, String path) {
     super();
-    this.name = name;
+    this.code = code;
+    this.name = code;
     this.path = path;
   }
 
-  public MetaData(String type, Long id, String description, String name, String comment, String revision, String path) {
-    this(type, id, description, name, comment, revision);
+  public MetaData(String type, Long id, String description, String code, String comment, String revision, String path) {
+    this(type, id, description, code, comment, revision);
     this.path = path;
 
   }
 
-  public MetaData(String type, Long id, String description, String name, String comment, String revision) {
+  public MetaData(String type, Long id, String description, String code, String comment, String revision) {
     super();
     this.id = id;
     this.description = description;
-    this.name = name;
+    this.name = code;
+    this.code = code;
     this.comment = comment;
     this.revision = revision;
     this.type = type;
@@ -32,7 +34,17 @@ public class MetaData {
 
   private String name;
 
+  private String code;
+
   private String comment;
+
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
 
   public String getType() {
     return type;
@@ -92,5 +104,11 @@ public class MetaData {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public int compareTo(MetaData arg0) {
+    if (this.code != null)
+      return this.code.compareTo(arg0.getCode());
+    return this.name.compareTo(arg0.getName());
   }
 }

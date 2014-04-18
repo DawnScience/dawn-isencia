@@ -70,7 +70,7 @@ public class FileSenderChannel extends WriterSenderChannel {
 
     try {
       if (encoding != null) {
-        FileOutputStream fileOutputStream = new FileOutputStream(destFile);
+        FileOutputStream fileOutputStream = new FileOutputStream(destFile, append);
         setWriter(new OutputStreamWriter(fileOutputStream, encoding));
       } else {
         setWriter(new FileWriter(destFile, append));

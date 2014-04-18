@@ -111,10 +111,7 @@ public class OSEnvironment {
 
     // Detemine the correct command to run based on OS name
     String os = System.getProperty("os.name").toLowerCase();
-    if (os.indexOf("windows 9") > -1) {
-      command = "command.com /c set";
-    } else if ((os.indexOf("windows 7") > -1) || (os.indexOf("nt") > -1) || (os.indexOf("windows 20") > -1) || (os.indexOf("windows xp") > -1)
-        || (os.indexOf("windows vista") > -1) || (os.indexOf("os/2") > -1)) {
+    if ((os.indexOf("windows") > -1) || (os.indexOf("os/2") > -1)) {
       command = "cmd.exe /c set";
     } else {
       // should work for just about any Unix variant

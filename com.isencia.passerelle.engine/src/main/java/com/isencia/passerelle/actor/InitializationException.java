@@ -14,6 +14,7 @@
 */
 package com.isencia.passerelle.actor;
 
+import ptolemy.kernel.util.Nameable;
 import ptolemy.kernel.util.NamedObj;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
@@ -59,7 +60,7 @@ public class InitializationException extends PasserelleException {
    * @param modelElement
    * @param rootException
    */
-	public InitializationException(ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+	public InitializationException(ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(errorCode, message, modelElement, rootException);
   }
 }

@@ -45,7 +45,6 @@ import ptolemy.kernel.util.Workspace;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.Manager;
 import com.isencia.passerelle.core.PasserelleException;
-import com.isencia.passerelle.domain.ProcessThread;
 import com.isencia.passerelle.domain.cap.Director;
 import com.isencia.passerelle.engine.activator.Activator;
 import com.isencia.passerelle.ext.DirectorAdapter;
@@ -1029,10 +1028,10 @@ public class FlowManager {
 			}
 			logger.info("{} stopped to state {}",flow.getName(),mgr.getState());
 			try {
-				Collection<ProcessThread> remainingThreads = ((Director)flow.getDirector()).getThreads();
+				Collection<Thread> remainingThreads = ((Director)flow.getDirector()).getThreads();
 				if(!remainingThreads.isEmpty()) {
 					logger.warn("Failed to do a clean stop of {}", flow.getName());
-					for (ProcessThread thread : remainingThreads) {
+					for (Thread thread : remainingThreads) {
 						logger.warn("{} - pending thread {}", flow.getName(), thread.toString());
 					}
 				}

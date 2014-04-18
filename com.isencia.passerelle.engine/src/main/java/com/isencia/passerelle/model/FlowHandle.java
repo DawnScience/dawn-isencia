@@ -30,7 +30,7 @@ import java.util.Date;
  * 
  * Remark that in an environment with multiple resource "stores", e.g. multiple Passerelle Manager
  * installations, the id is typically not globally unique. <br/>
- * Only the authorativeResourceLocation can then be considered as a truely unique identifier.
+ * Only the authorativeResourceLocation can then be considered as a truly unique identifier.
  * 
  * @author erwin
  *

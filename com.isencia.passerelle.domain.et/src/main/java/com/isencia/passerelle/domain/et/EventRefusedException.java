@@ -15,9 +15,10 @@
 
 package com.isencia.passerelle.domain.et;
 
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
+import com.isencia.passerelle.runtime.Event;
 
 /**
  * @author delerw
@@ -43,7 +44,7 @@ public class EventRefusedException extends PasserelleException {
    * @param modelElement
    * @param rootException
    */
-  public EventRefusedException(Event event, ErrorCode errorCode, String message, NamedObj modelElement, Throwable rootException) {
+  public EventRefusedException(Event event, ErrorCode errorCode, String message, Nameable modelElement, Throwable rootException) {
     super(errorCode, message, modelElement, rootException);
     this.refusedEvent = event;
   }

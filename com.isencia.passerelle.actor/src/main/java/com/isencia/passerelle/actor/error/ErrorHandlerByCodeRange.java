@@ -28,7 +28,7 @@ import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.Attribute;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
-import ptolemy.kernel.util.NamedObj;
+import ptolemy.kernel.util.Nameable;
 import com.isencia.passerelle.core.ErrorCode;
 import com.isencia.passerelle.core.PasserelleException;
 import com.isencia.passerelle.message.ManagedMessage;
@@ -105,7 +105,7 @@ public class ErrorHandlerByCodeRange extends AbstractErrorHandlerActor {
    * Checks if the given error contains a msg and an error code. If the code matches one/some of the configured ranges, the msg will be sent out via the
    * corresponding port(s).
    */
-  public synchronized boolean handleError(NamedObj errorSource, PasserelleException error) {
+  public synchronized boolean handleError(Nameable errorSource, PasserelleException error) {
     boolean result = false;
     ManagedMessage msg = error.getMsgContext();
     ErrorCode errCode = error.getErrorCode();

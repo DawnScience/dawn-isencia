@@ -101,6 +101,10 @@ public class ETReceiver extends AbstractReceiver implements MessageProvider {
 
   @Override
   public void put(Token token) throws IllegalActionException{
+    // Is it possible to determine the sending port here?
+    // I don't think so...
+    // Alternatively we could generate this event in the sending Port??
+    SendEvent evt = new SendEvent(token, null, (Port) getContainer());
     if(token==null) {
       return;
     } else if (buffer != null) {
@@ -115,7 +119,7 @@ public class ETReceiver extends AbstractReceiver implements MessageProvider {
           }
         }
         ManagedMessage msg = MessageHelper.getMessageFromToken(token);
-        MessageInputContext ctxt = new MessageInputContext(0, getContainer().getName(), msg);
+        MessageInputContext ctxt = new ETMessageInputContext(evt, 0, getContainer().getName(), msg);
         buffer.offer(ctxt);
       } catch (PasserelleException e) {
         throw new RuntimeException("Failed to interpret token " + token, e);
@@ -123,11 +127,8 @@ public class ETReceiver extends AbstractReceiver implements MessageProvider {
     } else {
       tokens.add(token);
     }
-    // Is it possible to determine the sending port here?
-    // I don't think so...
-    // Alternatively we could generate this event in the sending Port??
     try {
-      director.enqueueEvent(new SendEvent(token, null, (Port) getContainer()));
+      director.enqueueEvent(evt);
     } catch (EventRefusedException e) {
       throw new IllegalActionException(null, e, null);
     }
