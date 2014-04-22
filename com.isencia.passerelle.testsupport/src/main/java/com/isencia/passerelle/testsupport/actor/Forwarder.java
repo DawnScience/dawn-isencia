@@ -11,9 +11,10 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-*/
+ */
 package com.isencia.passerelle.testsupport.actor;
 
+import java.util.Iterator;
 import ptolemy.kernel.CompositeEntity;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
@@ -31,7 +32,7 @@ import com.isencia.passerelle.message.MessageFactory;
 
 @SuppressWarnings("serial")
 public class Forwarder extends Actor {
-  
+
   public Port input;
   public Port output;
 
@@ -47,14 +48,18 @@ public class Forwarder extends Actor {
   }
 
   protected void doProcess(ActorContext ctxt, ProcessRequest request, ProcessResponse response) throws ProcessingException {
-    ManagedMessage receivedMsg = request.getMessage(input);
-    // Create a new outgoing msg, "caused by" the received input msg
-    // and for the rest a complete copy of the received msg
-    try {
-      ManagedMessage outputMsg = MessageFactory.getInstance().createCausedCopyMessage(receivedMsg);
-      response.addOutputMessage(output, outputMsg);
-    } catch (MessageException e) {
-      throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error constructing copy from received message from value parameter", this, receivedMsg, e);
+    Iterator<ManagedMessage> allMessages = request.getAllMessages(input);
+    while (allMessages.hasNext()) {
+      ManagedMessage receivedMsg = (ManagedMessage) allMessages.next();
+      // Create a new outgoing msg, "caused by" the received input msg
+      // and for the rest a complete copy of the received msg
+      try {
+        ManagedMessage outputMsg = MessageFactory.getInstance().createCausedCopyMessage(receivedMsg);
+        response.addOutputMessage(output, outputMsg);
+      } catch (MessageException e) {
+        throw new ProcessingException(ErrorCode.MSG_CONSTRUCTION_ERROR, "Error constructing copy from received message from value parameter", this,
+            receivedMsg, e);
+      }
     }
   }
 }
