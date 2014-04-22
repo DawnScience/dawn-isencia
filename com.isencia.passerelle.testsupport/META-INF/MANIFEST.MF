@@ -1,0 +1,32 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Passerelle Test Support
+Bundle-SymbolicName: com.isencia.passerelle.testsupport
+Bundle-Version: 8.4.0.qualifier
+Bundle-Vendor: ISENCIA
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: com.isencia.passerelle.actor;version="8.3.0",
+ com.isencia.passerelle.actor.v5;version="8.3.0",
+ com.isencia.passerelle.core;version="8.3.0",
+ com.isencia.passerelle.ext;version="8.3.0",
+ com.isencia.passerelle.ext.impl;version="8.3.0",
+ com.isencia.passerelle.message;version="8.3.0",
+ com.isencia.passerelle.model;version="8.3.0",
+ com.isencia.passerelle.model.util;version="8.3.0",
+ com.isencia.passerelle.statistics;version="8.3.0",
+ com.isencia.sherpa.commons,
+ junit.framework;version="3.8.2",
+ org.slf4j;version="1.5.0",
+ ptolemy.actor;version="7.0.1",
+ ptolemy.actor.gui.style;version="7.0.1",
+ ptolemy.data;version="7.0.1",
+ ptolemy.data.expr;version="7.0.1",
+ ptolemy.data.type;version="7.0.1",
+ ptolemy.kernel;version="7.0.1",
+ ptolemy.kernel.util;version="7.0.1"
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.4.0",
+ org.apache.log4j;bundle-version="1.2.14"
+Export-Package: com.isencia.passerelle.testsupport,
+ com.isencia.passerelle.testsupport.actor,
+ com.isencia.passerelle.testsupport.utils
+
