@@ -1,2 +1,4 @@
 /org.dawnsci.passerelle.parallel.actor/target
 /com.isencia.passerelle.testsupport/target
+/com.isencia.passerelle.runtime/target
+/com.isencia.passerelle.runtime.repos.impl.filesystem/target
