@@ -19,16 +19,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ptolemy.actor.Director;
+import ptolemy.kernel.Entity;
 import ptolemy.kernel.Port;
 import ptolemy.kernel.util.IllegalActionException;
 import ptolemy.kernel.util.NameDuplicationException;
-
-import com.isencia.passerelle.actor.Actor;
+import ptolemy.actor.Actor;
 import com.isencia.passerelle.ext.DirectorAdapter;
 import com.isencia.passerelle.ext.impl.DefaultDirectorAdapter;
 import com.isencia.passerelle.ext.impl.NullDirectorAdapter;
@@ -77,42 +75,87 @@ public class DirectorUtils {
   }
 
   /**
+   * Finds the actors that are still active in the flow execution and that are potential sources for new work in the remaining active model branches or loops.
+   * In models with loops, at least one actor in the loop will be present, potentially more/all of them.
+   * <p>
+   * Actors that are still actively iterating but without active input ports are considered as potential roots for the branches of actors that are connected to
+   * their output ports. Active actors with active input ports are not considered, unless they are in a loop.
+   * </p>
+   * 
    * @param director
    * @return
    */
-  public static Set<Actor> getActiveActorsWithoutInputs(Director director) {
+  public static Set<Actor> getRootActorsForActiveBranchesAndLoops(Director director) {
+    Set<Actor> checkedActors = new HashSet<Actor>();
     Set<Actor> result = new HashSet<Actor>();
+
     DirectorAdapter adapter = DirectorUtils.getAdapter(director, null);
-    Collection<ptolemy.actor.Actor> activeActors = adapter.getActiveActors();
-    for (ptolemy.actor.Actor actor : activeActors) {
+    Collection<Actor> activeActors = adapter.getActiveActors();
+    for (Actor actor : activeActors) {
       LOGGER.debug("{} : Active actor", actor.getFullName());
-      if (actor instanceof Actor) {
-        Actor a = (Actor) actor;
-        @SuppressWarnings("unchecked")
-        List<Port> portList = a.inputPortList();
-        if(portList.isEmpty()) {
-          LOGGER.debug("{} : Active actor without input ports", actor.getFullName());
-        }
-        boolean actorHasInputs = false;
-        for (Port port : portList) {
-          if (port instanceof com.isencia.passerelle.core.Port) {
-            com.isencia.passerelle.core.Port p = (com.isencia.passerelle.core.Port) port;
-            if (!p.getActiveSources().isEmpty()) {
-              LOGGER.debug("Active port {}", p.getName());
-              actorHasInputs = true;
-            } else {
-              LOGGER.debug("NON-active port {}", p.getName());
-            }
-          }
-        }
-        if(!actorHasInputs) {
-          LOGGER.debug("{} : Found active actor with no active input ports", actor.getFullName());
-          result.add(a);
-        }
+      if (result.contains(actor) || checkedActors.contains(actor)) {
+        continue;
       } else {
-        LOGGER.warn("{} : non-Passerelle actor", actor.getFullName());
+        checkBranchRootAndLoop((Actor) actor, result, checkedActors);
       }
     }
+    LOGGER.debug("Found root/loop actors {}", result);
     return result;
+  }
+
+  /**
+   * 
+   * @param fromActor the actor from which we start looking backwards in the model to determine its branch's root actor
+   * or whether the actor is in a loop.
+   * @param result the set of all branch roots and loop actors found till now
+   * @param checkedActors the set of all checked actors in the model
+   * @return true if a root or loop actor was found and added in the result set
+   */
+  protected static boolean checkBranchRootAndLoop(Actor fromActor, Set<Actor> result, Set<Actor> checkedActors) {
+    LOGGER.trace("isActorBranchRootOrInLoop() - entry : {}", fromActor);
+    boolean addedOne = false;
+    if (checkedActors.contains(fromActor)) {
+      // actor is in a loop as it was checked already
+      LOGGER.debug("{} : Actor is in a loop", fromActor.getFullName());
+      addedOne = result.add(fromActor);
+    } else {
+      checkedActors.add(fromActor);
+      boolean addThisOne = true;
+      @SuppressWarnings("unchecked")
+      List<Port> portList = fromActor.inputPortList();
+      for (Port port : portList) {
+        if (port instanceof com.isencia.passerelle.core.Port) {
+          com.isencia.passerelle.core.Port p = (com.isencia.passerelle.core.Port) port;
+          Set<Entity> activeSources = p.getActiveSources();
+          if (!activeSources.isEmpty()) {
+            // now find roots of this actor's branch or check if we're in a loop and may still need to include this port's actor
+            for (Entity srcEntity : activeSources) {
+              if (srcEntity instanceof Actor) {
+                Actor srcActor = (Actor) srcEntity;
+                if (result.contains(srcEntity)) {
+                  // we don't need to include this srcEntity anymore as another actor before this one, in a same branch/loop, is already included
+                  addThisOne = false;
+                  break;
+                } else if (checkBranchRootAndLoop(srcActor, result, checkedActors)) {
+                  // we've found and added a preceeding actor in this branch, so no need to add this one anymore
+                  addedOne = true;
+                  addThisOne = false;
+                  break;
+                }
+              }
+            }
+          }
+          if (!addThisOne) {
+            break;
+          }
+        }
+      }
+      if(addThisOne) {
+        LOGGER.debug("{} : Found root/loop actor", fromActor.getFullName());
+        addedOne = result.add(fromActor);
+      }
+    }
+    LOGGER.trace("isActorBranchRootOrInLoop() - exit : {} - added a result : {}", fromActor, addedOne);
+    return addedOne;
   }
 }

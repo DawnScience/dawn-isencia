@@ -119,17 +119,17 @@ public abstract class ProcessDirector extends CompositeProcessDirector implement
       myThreads.remove((ProcessThread) thread);
     }
     
-    Set<com.isencia.passerelle.actor.Actor> activeActorsWithoutInputs = DirectorUtils.getActiveActorsWithoutInputs(this);
+    Set<Actor> activeActorsWithoutInputs = DirectorUtils.getRootActorsForActiveBranchesAndLoops(this);
     boolean areAllDaemon = true;
-    for (com.isencia.passerelle.actor.Actor actor : activeActorsWithoutInputs) {
-      if(!actor.isDaemon()) {
+    for (Actor actor : activeActorsWithoutInputs) {
+      if (!(actor instanceof com.isencia.passerelle.actor.Actor) || !((com.isencia.passerelle.actor.Actor)actor).isDaemon()) {
         areAllDaemon = false;
         break;
       }
     }
-    if(areAllDaemon) {
-      for (com.isencia.passerelle.actor.Actor actor : activeActorsWithoutInputs) {
-        actor.requestFinish();
+    if (areAllDaemon) {
+      for (Actor actor : activeActorsWithoutInputs) {
+        ((com.isencia.passerelle.actor.Actor)actor).requestFinish();
       }
     }
   }
