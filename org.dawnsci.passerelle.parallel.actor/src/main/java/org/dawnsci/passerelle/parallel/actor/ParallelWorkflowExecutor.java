@@ -64,7 +64,7 @@ public class ParallelWorkflowExecutor extends Actor {
   private final static Logger LOGGER = LoggerFactory.getLogger(ParallelWorkflowExecutor.class);
 
   // ForkJoinPool has a private MAX_ID = 0x7fff.
-  // But we can not access it, and I think it's a bit too muxh for our purposes.
+  // But we can not access it, and I think it's a bit too much for our purposes.
   private final static int ABSOLUTE_MAX_PARALLELISM = 1000;
 
   public Parameter maxParallelismParam;
@@ -117,11 +117,11 @@ public class ParallelWorkflowExecutor extends Actor {
 //      DataMessageComponent dataMsgComp = null;
 //      try {
 //        dataMsgComp = MessageUtils.coerceMessage(message);
-//        IMetaData metaData = dataMsgComp.getMeta();
-//        System.out.println(metaData);
+//        IMetadata metadata = dataMsgComp.getMetadata();
+//        System.out.println(metadata);
 //        
-//        Map<String, Serializable> dataSetMap = dataMsgComp.getList();
-//        System.out.println(dataSetMap);
+//        Map<String, Serializable> datasetMap = dataMsgComp.getList();
+//        System.out.println(datasetMap);
 //        IDataset ds = (IDataset) dataMsgComp.getList("image");
 //        System.out.println("Shape of the image : "+Arrays.toString(ds.getShape()));
 //
@@ -145,7 +145,7 @@ public class ParallelWorkflowExecutor extends Actor {
       System.out.println(processStatus);
       response.addOutputMessage(output, message);
     } catch (IllegalActionException e) {
-      // should not happen as all params were validated during initialization validation
+      // should not happen as all parameters were validated during initialization validation
       throw new ProcessingException(ErrorCode.ACTOR_EXECUTION_ERROR, "Error getting actor configuration", this, e);
     }
   }
