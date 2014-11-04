@@ -150,6 +150,13 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
   }
 
   public MessageQueue getMessageQueue() {
+	if (pushedMessages == null) {
+		try {
+			pushedMessages = newMessageQueue();
+		} catch (InitializationException e) {
+			LOGGER.error(e.toString());
+		}
+	}
     return pushedMessages;
   }
 
@@ -292,7 +299,7 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
           }
         }
       }
-      if (readyToFire && (!pushedMessages.isEmpty() || !msgProviders.isEmpty())) {
+      if (readyToFire && (!getMessageQueue().isEmpty() || !msgProviders.isEmpty())) {
         try {
           // TODO check if it's not nicer to maintain buffer time from 1st preFire() call
           // to when readyToFire, i.o. adding it after the time we've already been waiting
@@ -311,7 +318,7 @@ public abstract class Actor extends com.isencia.passerelle.actor.Actor implement
       }
       readyToFire = readyToFire && currentProcessRequest.hasSomethingToProcess();
       // when all ports are exhausted, we can stop this actor
-      if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && pushedMessages.isEmpty()) {
+      if (!readyToFire && !getDirectorAdapter().isActorBusy(this) && areAllInputsFinished() && getMessageQueue().isEmpty()) {
         requestFinish();
         readyToFire = true;
       }
