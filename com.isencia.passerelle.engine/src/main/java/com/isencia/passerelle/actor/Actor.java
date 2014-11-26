@@ -962,7 +962,7 @@ public abstract class Actor extends TypedAtomicActor implements IMessageCreator 
   /**
    * @return a flag indicating whether a finish has already been requested for this actor
    */
-  final public boolean isFinishRequested() {
+  public boolean isFinishRequested() {
     return finishRequested;
   }
 
