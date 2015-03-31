@@ -52,7 +52,6 @@ import com.isencia.passerelle.ext.ErrorCollector;
 import com.isencia.passerelle.ext.ExecutionControlStrategy;
 import com.isencia.passerelle.ext.impl.SuspendResumeExecutionControlStrategy;
 import com.isencia.passerelle.model.util.MoMLParser;
-import com.isencia.passerelle.model.util.RESTFacade;
 import com.isencia.passerelle.validation.version.VersionSpecification;
 
 
@@ -182,8 +181,6 @@ public class FlowManager {
 	// Maintains a list of remotly executing flows
 	private final List<Flow> remoteFlowExecutionsList = new ArrayList<Flow>();
 
-	private static RESTFacade restFacade;
-
 	public static void applyParameterSettings(Flow flow, Map<String, String> props) throws PasserelleException {
 		applyParameterSettings(flow, props, null);
 	}
@@ -289,11 +286,9 @@ public class FlowManager {
 		if ("http".equals(protocol) || "https".equals(protocol)) {
 			// it's probably/hopefully a REST url pointing towards a Passerelle
 			// Manager
-			if (restFacade == null) {
-				initRESTFacade();
-			}
 
-			results = restFacade.getAllRemoteFlowHandles(baseResourceLocation);
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
+			
 		} else if ("file".equals(protocol)) {
 			// it's a local directory
 			results = new ArrayList<FlowHandle>();
@@ -333,21 +328,11 @@ public class FlowManager {
 	public static List<ExecutionTraceRecord> getRemoteExecutionTraces(FlowHandle fHandle) throws IllegalStateException, IllegalArgumentException,
 			PasserelleException, Exception {
 		if (fHandle.isRemote()) {
-			if (restFacade == null) {
-				initRESTFacade();
-			}
 
-			return restFacade.getRemoteExecutionTraces(fHandle);
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 		} else {
 			throw new IllegalArgumentException("Flow is not managed remotely");
 		}
-	}
-
-	/**
-	 * TODO make timeout values configurable
-	 */
-	private static void initRESTFacade() {
-		restFacade = new RESTFacade(10000, 10000);
 	}
 
 	/**
@@ -543,11 +528,8 @@ public class FlowManager {
       return toplevel;
     } else if ("http".equals(protocol) || "https".equals(protocol)) {
       // it's probably/hopefully a REST url pointing towards a Passerelle Manager
-      if (restFacade == null) {
-        initRESTFacade();
-      }
-      FlowHandle flowHandle = restFacade.getRemoteFlowHandle(xmlFile);
-      return buildFlowFromHandle(flowHandle);
+
+		throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
     } else {
       throw new IllegalArgumentException("Unsupported URL protocol " + protocol);
     }
@@ -570,23 +552,15 @@ public class FlowManager {
 			FlowManager.writeMoml(flow, new BufferedWriter(new FileWriter(url.getFile())));
 			return flow;
 		} else {
-			if (restFacade == null) {
-				initRESTFacade();
-			}
-			FlowHandle updatedhandle = restFacade.updateRemoteFlow(flow);
-			return buildFlowFromHandle(updatedhandle);
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 		}
 	}
 
 	public static Flow saveMomlParameterUpdates(Flow flow, Map<String, String> updatedParams) throws Exception {
 		applyParameterSettings(flow, updatedParams);
 		if (flow.getHandle().isRemote()) {
-			if (restFacade == null) {
-				initRESTFacade();
-			}
 
-			FlowHandle updatedFlowhandle = restFacade.updateRemoteFlow(flow.getHandle(), updatedParams);
-			return buildFlowFromHandle(updatedFlowhandle);
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 		} else {
 			if (flow.getHandle().getAuthorativeResourceLocation() != null) {
 				FileWriter out = null;
@@ -883,22 +857,9 @@ public class FlowManager {
 	 * @return the flow with added execution UID in its FLlwHandle
 	 */
 	private Flow executeOnServer(Flow flow, Map<String, String> updatedParams) throws Exception {
-		if (restFacade == null) {
-			initRESTFacade();
-		}
-		if (remoteFlowExecutionsList.contains(flow)) {
-			throw new FlowAlreadyExecutingException(flow);
-		}
 
-		FlowHandle flowHandle = flow.getHandle();
-		if (updatedParams != null && !updatedParams.isEmpty()) {
-			flowHandle = restFacade.updateRemoteFlow(flow.getHandle(), updatedParams);
-		}
-		FlowHandle startedFlowhandle = restFacade.startFlowRemotely(flowHandle);
-		remoteFlowExecutionsList.add(flow);
-		flow.setHandle(startedFlowhandle);
+		throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 
-		return flow;
 	}
 
 	/**
@@ -935,11 +896,8 @@ public class FlowManager {
 	 */
 	public Collection<FlowHandle> getExecutingFlows(URL executionLocation) throws PasserelleException {
 		if (executionLocation != null && executionLocation.getProtocol().startsWith("http")) {
-			if (restFacade == null) {
-				initRESTFacade();
-			}
 
-			return restFacade.getAllRemoteExecutingFlowHandles(executionLocation);
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 		} else {
 			Set<FlowHandle> localExecutingFlows = flowExecutions.keySet();
 			return Collections.unmodifiableCollection(localExecutingFlows);
@@ -1000,15 +958,10 @@ public class FlowManager {
 		}
 		if (handle.isRemote()) {
 			if (!remoteFlowExecutionsList.contains(flow)) {
-	      throw new FlowNotExecutingException(flow);
+	            throw new FlowNotExecutingException(flow);
 			}
-			if (restFacade == null) {
-				initRESTFacade();
-			}
-			FlowHandle stoppedRemoteFlowHandle = restFacade.stopFlowRemotely(handle);
-			// rely on indirect removal via trace polling in HMI
-			// remoteFlowExecutionsList.remove(flow);
-			return buildFlowFromHandle(stoppedRemoteFlowHandle);
+
+			throw new PasserelleException(ErrorCode.FATAL, "http not supported!", null);
 		} else {
 			Manager mgr = flowExecutions.get(handle);
 			if (mgr == null) {
