@@ -73,7 +73,7 @@ public class DefaultTypeConverterProvider implements TypeConverterProvider {
 					Class converterClass = Class.forName(converterName);
 					TypeConverter converter = (TypeConverter) converterClass.newInstance();
 					converters.add(converter);
-					logger.debug("loadConverters() - succesfully registered converter "+converterName);
+					logger.debug("loadConverters() - successfully registered converter "+converterName);
 				} catch (ClassNotFoundException e) {
 					logger.error("loadConverters() - could not load converter class "+converterName);
 				} catch (InstantiationException e) {
