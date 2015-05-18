@@ -16,4 +16,4 @@ Export-Package: com.isencia.constants;version="8.7.0",
  com.isencia.util.swing.calendar;version="8.7.0",
  com.isencia.util.swing.components;version="8.7.0",
  com.isencia.util.swing.layout;version="8.7.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

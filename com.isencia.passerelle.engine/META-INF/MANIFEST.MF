@@ -59,4 +59,4 @@ Require-Bundle: com.isencia.passerelle.commons;bundle-version="8.7.0",
  diva;bundle-version="7.0.1",
  org.apache.commons.math;bundle-version="2.0.0",
  org.apache.xerces;bundle-version="2.9.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

@@ -4,7 +4,7 @@ Bundle-Name: Passerelle Repository on Filesystem Plug-in
 Bundle-SymbolicName: com.isencia.passerelle.project.repository.impl.filesystem
 Bundle-Version: 8.7.0.qualifier
 Bundle-Vendor: ISENCIA
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: com.isencia.passerelle.model;version="8.7.0",
  com.isencia.passerelle.util;version="8.7.0",
  org.apache.commons.io.filefilter,
